@@ -1,8 +1,9 @@
 """Tests for comparison/cps.py module."""
 
+from unittest.mock import MagicMock, patch
+
 import numpy as np
 import pytest
-from unittest.mock import MagicMock, patch
 
 from cosilico_validators.comparison.cps import (
     COMPARISON_VARIABLES,
@@ -18,7 +19,7 @@ class TestConstants:
         assert len(COMPARISON_VARIABLES) > 0
 
     def test_comparison_variables_have_required_keys(self):
-        for name, config in COMPARISON_VARIABLES.items():
+        for _name, config in COMPARISON_VARIABLES.items():
             assert "title" in config
             assert "cosilico_col" in config
             assert "pe_var" in config
@@ -127,7 +128,7 @@ class TestLoadVariableMappings:
 
     def test_mappings_have_cosilico_col(self):
         mappings = load_variable_mappings()
-        for name, config in mappings.items():
+        for _name, config in mappings.items():
             assert "cosilico_col" in config
 
 
@@ -281,13 +282,15 @@ class TestMain:
 
 class TestLoadPolicyengineValues:
     def test_requires_policyengine(self):
+        import sys
+
         from cosilico_validators.comparison.cps import load_policyengine_values
-        with pytest.raises(ImportError):
+        with patch.dict(sys.modules, {"policyengine_us": None}), \
+             pytest.raises(ImportError):
             load_policyengine_values(year=2024)
 
     def test_load_success_with_mock(self):
         """Test full body of load_policyengine_values with mocked PE."""
-        import importlib
         import sys
 
         # Create a mock policyengine_us module
@@ -331,16 +334,14 @@ class TestLoadPolicyengineValues:
 
         mock_sim.calculate.side_effect = mock_calculate
         # Temporarily set pe_entity to 'person' on eitc
-        orig = COMPARISON_VARIABLES.get("eitc", {}).get("pe_entity")
-        with patch.dict(sys.modules, {"policyengine_us": mock_pe}):
-            # Patch the config to trigger person entity path
-            with patch.dict(
+        with patch.dict(sys.modules, {"policyengine_us": mock_pe}), \
+             patch.dict(
                 COMPARISON_VARIABLES,
                 {"eitc": {**COMPARISON_VARIABLES.get("eitc", {}), "pe_entity": "person"}},
-            ):
-                from cosilico_validators.comparison.cps import load_policyengine_values
-                result = load_policyengine_values(year=2024, variables=["eitc"])
-                assert "eitc" in result.data
+             ):
+            from cosilico_validators.comparison.cps import load_policyengine_values
+            result = load_policyengine_values(year=2024, variables=["eitc"])
+            assert "eitc" in result.data
 
     def test_load_with_exception_in_variable(self):
         """Test that exceptions in variable calculation are caught."""
@@ -562,14 +563,13 @@ class TestLoadCosilicoDataSources:
         mock_builder = MagicMock()
         mock_runner = MagicMock()
 
-        with patch("pathlib.Path.home", return_value=MagicMock()):
-            with patch.dict(sys.modules, {
-                "tax_unit_builder": mock_builder,
-                "cosilico_runner": mock_runner,
-            }):
-                from cosilico_validators.comparison.cps import _load_cosilico_data_sources
-                result = _load_cosilico_data_sources()
-                assert len(result) == 2
+        with patch("pathlib.Path.home", return_value=MagicMock()), patch.dict(sys.modules, {
+            "tax_unit_builder": mock_builder,
+            "cosilico_runner": mock_runner,
+        }):
+            from cosilico_validators.comparison.cps import _load_cosilico_data_sources
+            result = _load_cosilico_data_sources()
+            assert len(result) == 2
 
 
 class TestLoadCosilicoCps:
@@ -582,7 +582,7 @@ class TestLoadCosilicoCps:
             "weight": [100.0, 200.0],
         })
         # Add columns for all comparison variables
-        for var_name, config in COMPARISON_VARIABLES.items():
+        for _var_name, config in COMPARISON_VARIABLES.items():
             col = config["cosilico_col"]
             mock_df[col] = [100.0, 200.0]
 

@@ -1,16 +1,13 @@
 """Tests for TAXSIM validator - full coverage."""
 
 import os
-import pytest
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from cosilico_validators.validators.base import TestCase, ValidatorType, ValidatorResult
+import pytest
+
+from cosilico_validators.validators.base import TestCase
 from cosilico_validators.validators.taxsim import (
     TaxsimValidator,
-    TAXSIM_OUTPUT_VARS,
-    TAXSIM_COLUMNS,
-    TAXSIM_API_URL,
 )
 
 
@@ -27,10 +24,26 @@ class TestResolvePathLocal:
         with pytest.raises(FileNotFoundError):
             v._resolve_taxsim_path("/nonexistent/taxsim35")
 
-    def test_search_paths_finds_existing(self):
-        """When the real taxsim35 exe exists in resources, it should be found."""
+    def test_search_paths_finds_existing(self, tmp_path):
+        """When the taxsim35 exe exists in a search path, it should be found."""
+        import platform
+        system = platform.system().lower()
+        if system == "darwin":
+            exe_name = "taxsim35-osx.exe"
+        elif system == "windows":
+            exe_name = "taxsim35-windows.exe"
+        else:
+            exe_name = "taxsim35-unix.exe"
+
+        # Create a fake executable in the home-based search path
+        taxsim_dir = tmp_path / ".cosilico" / "taxsim"
+        taxsim_dir.mkdir(parents=True)
+        exe_file = taxsim_dir / exe_name
+        exe_file.write_text("fake")
+
         v = TaxsimValidator.__new__(TaxsimValidator)
-        result = v._resolve_taxsim_path(None)
+        with patch("pathlib.Path.home", return_value=tmp_path):
+            result = v._resolve_taxsim_path(None)
         assert result.exists()
 
     def test_local_mode_init(self, tmp_path):
@@ -72,45 +85,42 @@ class TestExecuteWeb:
         mock_result = MagicMock()
         mock_result.returncode = 1
         mock_result.stderr = "connection refused"
-        with patch("subprocess.run", return_value=mock_result):
-            with pytest.raises(RuntimeError, match="curl error"):
-                v._execute_web("csv data")
+        with patch("subprocess.run", return_value=mock_result), pytest.raises(RuntimeError, match="curl error"):
+            v._execute_web("csv data")
 
     def test_empty_response(self):
         v = TaxsimValidator(max_retries=1, timeout=10)
         mock_result = MagicMock()
         mock_result.returncode = 0
         mock_result.stdout = ""
-        with patch("subprocess.run", return_value=mock_result):
-            with pytest.raises(RuntimeError, match="Empty response"):
-                v._execute_web("csv data")
+        with patch("subprocess.run", return_value=mock_result), \
+             pytest.raises(RuntimeError, match="Empty response"):
+            v._execute_web("csv data")
 
     def test_html_error_response(self):
         v = TaxsimValidator(max_retries=1, timeout=10)
         mock_result = MagicMock()
         mock_result.returncode = 0
         mock_result.stdout = "<html><body>Error</body></html>"
-        with patch("subprocess.run", return_value=mock_result):
-            with pytest.raises(RuntimeError, match="API error"):
-                v._execute_web("csv data")
+        with patch("subprocess.run", return_value=mock_result), pytest.raises(RuntimeError, match="API error"):
+            v._execute_web("csv data")
 
     def test_timeout_with_retries(self):
         import subprocess
         v = TaxsimValidator(max_retries=2, timeout=10)
-        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("curl", 10)):
-            with patch("time.sleep"):
-                with pytest.raises(RuntimeError, match="timeout"):
-                    v._execute_web("csv data")
+        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("curl", 10)), \
+             patch("time.sleep"), \
+             pytest.raises(RuntimeError, match="timeout"):
+            v._execute_web("csv data")
 
     def test_retry_on_error(self):
         v = TaxsimValidator(max_retries=2, timeout=10)
         mock_success = MagicMock()
         mock_success.returncode = 0
         mock_success.stdout = "taxsimid,year,fiitax\n1,2023,5000"
-        with patch("subprocess.run", side_effect=[Exception("first fail"), mock_success]):
-            with patch("time.sleep"):
-                output = v._execute_web("csv data")
-                assert "fiitax" in output
+        with patch("subprocess.run", side_effect=[Exception("first fail"), mock_success]), patch("time.sleep"):
+            output = v._execute_web("csv data")
+            assert "fiitax" in output
 
 
 class TestExecuteLocal:
@@ -155,15 +165,15 @@ class TestExecuteLocal:
         mock_result = MagicMock()
         mock_result.returncode = 1
         mock_result.stderr = "error occurred"
+        import tempfile
         with patch("subprocess.run", return_value=mock_result), \
              patch("os.close"), \
              patch("os.chmod"), \
              patch("os.path.exists", return_value=True), \
-             patch("os.unlink"):
-            import tempfile
-            with patch.object(tempfile, "mkstemp", return_value=(5, "/tmp/output.csv")):
-                with pytest.raises(RuntimeError, match="TAXSIM failed"):
-                    v._execute_local("/tmp/input.csv")
+             patch("os.unlink"), \
+             patch.object(tempfile, "mkstemp", return_value=(5, "/tmp/output.csv")), \
+             pytest.raises(RuntimeError, match="TAXSIM failed"):
+            v._execute_local("/tmp/input.csv")
 
 
 class TestValidateComplete:
@@ -402,7 +412,7 @@ class TestExecuteLocalDarwinPath:
             mock_open.return_value.__enter__ = MagicMock(return_value=mock_file)
             mock_open.return_value.__exit__ = MagicMock(return_value=False)
             with patch("builtins.open", mock_open):
-                output = v._execute_local("/tmp/input.csv")
+                v._execute_local("/tmp/input.csv")
                 # Verify homebrew paths were added
                 call_env = mock_run.call_args[1].get("env", {})
                 assert "/opt/homebrew/bin" in call_env.get("PATH", "")
@@ -427,30 +437,26 @@ class TestResolveTaxsimPathEdgeCases:
     def test_linux_platform(self):
         """Test Linux platform detection."""
         v = TaxsimValidator.__new__(TaxsimValidator)
-        with patch("platform.system", return_value="Linux"):
-            with patch("pathlib.Path.exists", return_value=True):
-                result = v._resolve_taxsim_path(None)
-                assert "unix" in str(result).lower() or result.exists()
+        with patch("platform.system", return_value="Linux"), patch("pathlib.Path.exists", return_value=True):
+            result = v._resolve_taxsim_path(None)
+            assert "unix" in str(result).lower() or result.exists()
 
     def test_windows_platform(self):
         """Test Windows platform detection."""
         v = TaxsimValidator.__new__(TaxsimValidator)
-        with patch("platform.system", return_value="Windows"):
-            with patch("pathlib.Path.exists", return_value=True):
-                result = v._resolve_taxsim_path(None)
-                assert "windows" in str(result).lower() or result.exists()
+        with patch("platform.system", return_value="Windows"), patch("pathlib.Path.exists", return_value=True):
+            result = v._resolve_taxsim_path(None)
+            assert "windows" in str(result).lower() or result.exists()
 
     def test_unsupported_platform(self):
         """Test unsupported OS raises error."""
         v = TaxsimValidator.__new__(TaxsimValidator)
-        with patch("platform.system", return_value="FreeBSD"):
-            with pytest.raises(OSError, match="Unsupported"):
-                v._resolve_taxsim_path(None)
+        with patch("platform.system", return_value="FreeBSD"), pytest.raises(OSError, match="Unsupported"):
+            v._resolve_taxsim_path(None)
 
     def test_not_found_anywhere(self):
         """Test FileNotFoundError when exe not found."""
         v = TaxsimValidator.__new__(TaxsimValidator)
         with patch("platform.system", return_value="Darwin"), \
-             patch("pathlib.Path.exists", return_value=False):
-            with pytest.raises(FileNotFoundError, match="not found"):
-                v._resolve_taxsim_path(None)
+             patch("pathlib.Path.exists", return_value=False), pytest.raises(FileNotFoundError, match="not found"):
+            v._resolve_taxsim_path(None)

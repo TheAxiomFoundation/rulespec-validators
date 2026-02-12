@@ -2,10 +2,10 @@
 
 import importlib
 import sys
-import pytest
+from unittest.mock import MagicMock, patch
+
 import numpy as np
 import pandas as pd
-from unittest.mock import MagicMock, patch
 
 
 def _import_cps_comparison():
@@ -204,11 +204,10 @@ class TestMain:
             "policyengine_us": mock_pe,
             "tax_unit_builder": mock_builder_mod,
             "cosilico_runner": mock_runner_mod,
+        }), patch.object(mod, "compare_calculations", return_value={
+            "EITC": {"match_rate": 95.0, "mean_diff": 5.0, "correlation": 0.99},
         }):
-            with patch.object(mod, "compare_calculations", return_value={
-                "EITC": {"match_rate": 95.0, "mean_diff": 5.0, "correlation": 0.99},
-            }):
-                mod.main()
+            mod.main()
 
     def test_main_medium_match_rate(self):
         """Test main with medium match rate (75-90) to hit GOOD branch."""
@@ -238,11 +237,10 @@ class TestMain:
             "policyengine_us": mock_pe,
             "tax_unit_builder": mock_builder_mod,
             "cosilico_runner": mock_runner_mod,
+        }), patch.object(mod, "compare_calculations", return_value={
+            "EITC": {"match_rate": 80.0, "mean_diff": 100.0, "correlation": 0.9},
         }):
-            with patch.object(mod, "compare_calculations", return_value={
-                "EITC": {"match_rate": 80.0, "mean_diff": 100.0, "correlation": 0.9},
-            }):
-                mod.main()
+            mod.main()
 
     def test_main_low_match_rate(self):
         """Test main with low match rate (<75) to hit NEEDS WORK branch."""
@@ -263,11 +261,10 @@ class TestMain:
             "policyengine_us": mock_pe,
             "tax_unit_builder": mock_builder_mod,
             "cosilico_runner": mock_runner_mod,
+        }), patch.object(mod, "compare_calculations", return_value={
+            "EITC": {"match_rate": 50.0, "mean_diff": 500.0, "correlation": 0.3},
         }):
-            with patch.object(mod, "compare_calculations", return_value={
-                "EITC": {"match_rate": 50.0, "mean_diff": 500.0, "correlation": 0.3},
-            }):
-                mod.main()
+            mod.main()
 
 
 class TestCompareCalculationsCorrelation:

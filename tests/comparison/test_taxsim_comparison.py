@@ -1,8 +1,8 @@
 """Tests for comparison/taxsim_comparison.py module."""
 
-import numpy as np
-import pytest
 from unittest.mock import MagicMock, patch
+
+import numpy as np
 
 from cosilico_validators.comparison.taxsim_comparison import (
     ComparisonResult,
@@ -13,10 +13,10 @@ from cosilico_validators.comparison.taxsim_comparison import (
     compute_comparison_stats,
     generate_dashboard,
     generate_test_cases,
+    main,
     query_taxsim,
     run_comparisons,
     run_policyengine,
-    main,
 )
 
 

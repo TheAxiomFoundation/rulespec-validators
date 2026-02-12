@@ -10,10 +10,7 @@ def format_delta(value: float, is_percentage: bool = True) -> str:
     if abs(value) < 0.001:
         return "-"
 
-    if is_percentage:
-        formatted = f"{value * 100:+.1f}%"
-    else:
-        formatted = f"{value:+.2f}"
+    formatted = f"{value * 100:+.1f}%" if is_percentage else f"{value:+.2f}"
 
     if value > 0:
         return f"{formatted} :arrow_up:"

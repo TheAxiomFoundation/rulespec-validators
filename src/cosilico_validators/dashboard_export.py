@@ -45,11 +45,10 @@ import click
 import numpy as np
 
 from cosilico_validators.comparison.aligned import (
-    load_common_dataset,
-    compare_variable,
     ComparisonResult,
+    compare_variable,
+    load_common_dataset,
 )
-
 
 # Variables to validate - keys are PolicyEngine variable names
 # Section references the USC statute where the rule is encoded
@@ -90,9 +89,9 @@ def load_cosilico_engine():
     if engine_path.exists():
         sys.path.insert(0, str(engine_path))
 
-    from cosilico.vectorized_executor import VectorizedExecutor
-    from cosilico.dsl_parser import parse_dsl
     from cosilico.dependency_resolver import DependencyResolver
+    from cosilico.dsl_parser import parse_dsl
+    from cosilico.vectorized_executor import VectorizedExecutor
     return VectorizedExecutor, parse_dsl, DependencyResolver
 
 
@@ -602,11 +601,14 @@ def run_export(year: int = 2024, output_path: Optional[Path] = None) -> dict:
 
             if not implemented:
                 # Return zeros for unimplemented variables
-                cos_func = lambda ds: np.zeros(ds.n_records)
+                def cos_func(ds):
+                    return np.zeros(ds.n_records)
             else:
                 # Capture cos_values in closure
                 _cos_values = cos_values
-                cos_func = lambda ds, v=_cos_values: v
+
+                def cos_func(ds, v=_cos_values):
+                    return v
 
             result = compare_variable(dataset, cos_func, pe_values, var_name)
             results.append((result, meta, implemented))

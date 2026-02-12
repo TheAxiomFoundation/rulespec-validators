@@ -6,15 +6,13 @@ for analyzing U.S. federal tax policy.
 See: https://github.com/Budget-Lab-Yale/Tax-Simulator
 """
 
+import contextlib
 import json
 import os
 import shutil
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Any
-
-import yaml
 
 from cosilico_validators.validators.base import (
     BaseValidator,
@@ -119,7 +117,7 @@ class YaleTaxValidator(BaseValidator):
         raise FileNotFoundError(
             "Yale Tax-Simulator repository not found. "
             "Clone from https://github.com/Budget-Lab-Yale/Tax-Simulator "
-            f"to one of:\n" + "\n".join(f"  - {p}" for p in search_paths)
+            "to one of:\n" + "\n".join(f"  - {p}" for p in search_paths)
         )
 
     def _check_r_available(self) -> None:
@@ -295,7 +293,7 @@ class YaleTaxValidator(BaseValidator):
             return self._parse_output(output_dir, year)
 
         except subprocess.TimeoutExpired as e:
-            raise RuntimeError(f"Tax-Simulator timed out after 120 seconds") from e
+            raise RuntimeError("Tax-Simulator timed out after 120 seconds") from e
 
     def _parse_output(self, output_dir: Path, year: int) -> dict[str, float]:
         """Parse Tax-Simulator output files.
@@ -345,10 +343,8 @@ class YaleTaxValidator(BaseValidator):
                 for col, value in row.items():
                     col_lower = col.lower()
                     if col_lower in column_mapping:
-                        try:
+                        with contextlib.suppress(ValueError, TypeError):
                             results[column_mapping[col_lower]] = float(value)
-                        except (ValueError, TypeError):
-                            pass
 
                 # Only need first row for single-unit calculation
                 break

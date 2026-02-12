@@ -1,19 +1,26 @@
 """Tests for dashboard_export module."""
 
-import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
 
-from cosilico_validators.dashboard_export import (
-    VARIABLES, EITC_PARAMS_2024, NIIT_PARAMS_2024, CTC_PARAMS_2024,
-    CDCC_PARAMS_2024, STD_DEDUCTION_PARAMS_2024,
-    get_git_commit, load_rac_file, result_to_section, run_export, main,
-    load_cosilico_engine,
-)
 from cosilico_validators.comparison.aligned import ComparisonResult
+from cosilico_validators.dashboard_export import (
+    CDCC_PARAMS_2024,
+    CTC_PARAMS_2024,
+    EITC_PARAMS_2024,
+    NIIT_PARAMS_2024,
+    STD_DEDUCTION_PARAMS_2024,
+    VARIABLES,
+    get_git_commit,
+    load_cosilico_engine,
+    load_rac_file,
+    main,
+    result_to_section,
+    run_export,
+)
 
 
 class TestGetGitCommit:
@@ -172,9 +179,8 @@ class TestLoadCosilicoEngine:
 
 class TestRunExport:
     def test_run_export_requires_policyengine(self):
-        with pytest.raises(ImportError):
-            with patch.dict("sys.modules", {"policyengine_us": None}):
-                run_export(year=2024)
+        with pytest.raises(ImportError), patch.dict("sys.modules", {"policyengine_us": None}):
+            run_export(year=2024)
 
     def test_run_export_full_mock(self, tmp_path):
         """Test run_export with all dependencies mocked."""

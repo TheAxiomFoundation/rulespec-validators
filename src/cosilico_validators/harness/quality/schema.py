@@ -12,7 +12,6 @@ from pathlib import Path
 
 from .. import QualityIssue
 
-
 # Valid values for schema fields
 VALID_ENTITIES = {
     # Core tax/benefit units

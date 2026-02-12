@@ -2,17 +2,15 @@
 
 import csv
 import json
-import os
-import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from cosilico_validators.validators.base import TestCase, ValidatorType
+import pytest
+
+from cosilico_validators.validators.base import TestCase
 from cosilico_validators.validators.yale import (
-    YaleTaxValidator,
-    VARIABLE_MAPPING,
-    SUPPORTED_VARIABLES,
     FILING_STATUS_MAP,
+    YaleTaxValidator,
 )
 
 
@@ -26,14 +24,14 @@ class TestResolvePath:
             assert v.tax_simulator_path == tmp_path
 
     def test_provided_path_invalid(self, tmp_path):
-        with patch.object(YaleTaxValidator, "_check_r_available"):
-            with pytest.raises(FileNotFoundError, match="not found"):
-                YaleTaxValidator(tax_simulator_path=tmp_path)
+        with patch.object(YaleTaxValidator, "_check_r_available"), \
+             pytest.raises(FileNotFoundError, match="not found"):
+            YaleTaxValidator(tax_simulator_path=tmp_path)
 
     def test_search_paths_not_found(self):
-        with patch.object(YaleTaxValidator, "_check_r_available"):
-            with pytest.raises(FileNotFoundError, match="not found"):
-                YaleTaxValidator()
+        with patch.object(YaleTaxValidator, "_check_r_available"), \
+             pytest.raises(FileNotFoundError, match="not found"):
+            YaleTaxValidator()
 
     def test_found_in_search_paths(self, tmp_path):
         """Test that Tax-Simulator is found when it exists in a search path."""
@@ -61,18 +59,17 @@ class TestCheckRAvailable:
     def test_r_not_installed(self, tmp_path):
         (tmp_path / "src").mkdir()
         (tmp_path / "src" / "main.R").write_text("# R code")
-        with patch("subprocess.run", side_effect=FileNotFoundError("Rscript not found")):
-            with pytest.raises(RuntimeError, match="Rscript not found"):
-                YaleTaxValidator(tax_simulator_path=tmp_path)
+        with patch("subprocess.run", side_effect=FileNotFoundError("Rscript not found")), \
+             pytest.raises(RuntimeError, match="Rscript not found"):
+            YaleTaxValidator(tax_simulator_path=tmp_path)
 
     def test_r_nonzero_exit(self, tmp_path):
         (tmp_path / "src").mkdir()
         (tmp_path / "src" / "main.R").write_text("# R code")
         mock_result = MagicMock()
         mock_result.returncode = 1
-        with patch("subprocess.run", return_value=mock_result):
-            with pytest.raises(RuntimeError, match="non-zero"):
-                YaleTaxValidator(tax_simulator_path=tmp_path)
+        with patch("subprocess.run", return_value=mock_result), pytest.raises(RuntimeError, match="non-zero"):
+            YaleTaxValidator(tax_simulator_path=tmp_path)
 
 
 class TestCreateTaxUnitInput:
@@ -184,21 +181,21 @@ class TestRunSimulator:
         mock_result.returncode = 1
         mock_result.stdout = "some output"
         mock_result.stderr = "some error"
-        with patch("subprocess.run", return_value=mock_result):
-            with pytest.raises(RuntimeError, match="failed with code"):
-                validator._run_simulator(
-                    tmp_path / "input.csv", tmp_path / "runscript.csv",
-                    tmp_path, 2024
-                )
+        with patch("subprocess.run", return_value=mock_result), \
+             pytest.raises(RuntimeError, match="failed with code"):
+            validator._run_simulator(
+                tmp_path / "input.csv", tmp_path / "runscript.csv",
+                tmp_path, 2024
+            )
 
     def test_timeout(self, validator, tmp_path):
         import subprocess
-        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("Rscript", 120)):
-            with pytest.raises(RuntimeError, match="timed out"):
-                validator._run_simulator(
-                    tmp_path / "input.csv", tmp_path / "runscript.csv",
-                    tmp_path, 2024
-                )
+        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("Rscript", 120)), \
+             pytest.raises(RuntimeError, match="timed out"):
+            validator._run_simulator(
+                tmp_path / "input.csv", tmp_path / "runscript.csv",
+                tmp_path, 2024
+            )
 
 
 class TestParseOutput:
@@ -300,7 +297,7 @@ class TestValidateComplete:
         """Test that temp dir is cleaned up even on error."""
         with patch.object(validator, "_run_simulator", side_effect=RuntimeError("fail")):
             tc = TestCase(name="test", inputs={"earned_income": 30000}, expected={})
-            result = validator.validate(tc, "eitc", 2024)
+            validator.validate(tc, "eitc", 2024)
             # Even on failure, should complete without raising
 
     def test_successful_validation(self, validator):

@@ -1,17 +1,17 @@
 """Tests for comparison/record_comparison.py module."""
 
+from unittest.mock import MagicMock, patch
+
 import numpy as np
 import pandas as pd
 import pytest
-from unittest.mock import MagicMock, patch
 
 from cosilico_validators.comparison.record_comparison import (
     RecordComparison,
-    compare_records,
-    print_comparison,
-    _safe_int,
-    _safe_float,
     _create_pe_situation,
+    _safe_float,
+    _safe_int,
+    print_comparison,
 )
 
 
@@ -214,8 +214,9 @@ class TestRunCosilico:
 
 class TestRunPolicyengine:
     def test_run_policyengine(self):
-        from cosilico_validators.comparison.record_comparison import run_policyengine
         import sys
+
+        from cosilico_validators.comparison.record_comparison import run_policyengine
         mock_pe = MagicMock()
         mock_sim = MagicMock()
         mock_pe.Simulation.return_value = mock_sim
@@ -293,9 +294,8 @@ class TestRunTaxsim:
         with patch(
             "cosilico_validators.comparison.multi_validator.get_taxsim_executable_path",
             return_value="/tmp/taxsim35",
-        ), patch("subprocess.run", return_value=mock_result):
-            with pytest.raises(RuntimeError, match="TAXSIM failed"):
-                run_taxsim(input_df, year=2024)
+        ), patch("subprocess.run", return_value=mock_result), pytest.raises(RuntimeError, match="TAXSIM failed"):
+            run_taxsim(input_df, year=2024)
 
     def test_run_taxsim_joint_filer(self):
         from cosilico_validators.comparison.record_comparison import run_taxsim

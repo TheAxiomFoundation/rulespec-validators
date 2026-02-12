@@ -1,15 +1,15 @@
 """Tests for TAXSIM validator."""
 
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 from cosilico_validators.validators.base import TestCase, ValidatorType
 from cosilico_validators.validators.taxsim import (
-    TaxsimValidator,
-    TAXSIM_OUTPUT_VARS,
-    STATE_CODES,
     MSTAT_CODES,
+    STATE_CODES,
     TAXSIM_COLUMNS,
+    TAXSIM_OUTPUT_VARS,
+    TaxsimValidator,
 )
 
 

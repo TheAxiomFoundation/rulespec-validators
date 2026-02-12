@@ -1,14 +1,15 @@
 """Tests for comparison/aligned.py module."""
 
+from unittest.mock import MagicMock, patch
+
 import numpy as np
 import pytest
-from unittest.mock import MagicMock, patch
 
 from cosilico_validators.comparison.aligned import (
     CommonDataset,
     ComparisonResult,
-    compare_variable,
     _var_exists,
+    compare_variable,
 )
 
 
@@ -93,7 +94,10 @@ class TestCompareVariable:
     def test_perfect_match(self):
         ds = _make_common_dataset(1000)
         pe_values = np.ones(ds.n_records) * 1000
-        cos_func = lambda dataset: np.ones(dataset.n_records) * 1000
+
+        def cos_func(dataset):
+            return np.ones(dataset.n_records) * 1000
+
         result = compare_variable(ds, cos_func, pe_values, "eitc")
         assert result.match_rate == 1.0
         assert result.mean_absolute_error == 0.0
@@ -103,7 +107,10 @@ class TestCompareVariable:
         pe_values = np.ones(ds.n_records) * 1000
         cos_values = np.ones(ds.n_records) * 1000
         cos_values[:500] = 2000
-        cos_func = lambda dataset, v=cos_values: v
+
+        def cos_func(dataset, v=cos_values):
+            return v
+
         result = compare_variable(ds, cos_func, pe_values, "eitc")
         assert result.match_rate < 1.0
         assert result.mean_absolute_error > 0
@@ -112,7 +119,9 @@ class TestCompareVariable:
         ds = _make_common_dataset(1000)
         pe_values = np.ones(ds.n_records) * 1000
         np.random.seed(42)
-        cos_func = lambda dataset: np.random.uniform(900, 1100, dataset.n_records)
+        def cos_func(dataset):
+            return np.random.uniform(900, 1100, dataset.n_records)
+
         result = compare_variable(ds, cos_func, pe_values, "eitc")
         assert "p50" in result.error_percentiles
         assert "p90" in result.error_percentiles
@@ -124,7 +133,9 @@ class TestCompareVariable:
         ds = _make_common_dataset(1000)
         pe_values = np.ones(ds.n_records) * 1000
         cos_values = np.ones(ds.n_records) * 1000
-        cos_func = lambda dataset, v=cos_values: v
+        def cos_func(dataset, v=cos_values):
+            return v
+
         result = compare_variable(ds, cos_func, pe_values, "eitc")
         expected_total = np.sum(ds.weight * 1000)
         assert result.cosilico_total == pytest.approx(expected_total)
@@ -134,7 +145,10 @@ class TestCompareVariable:
         ds = _make_common_dataset(100)
         pe_values = np.ones(ds.n_records) * 1000
         cos_values = np.ones(ds.n_records) * 1005
-        cos_func = lambda dataset, v=cos_values: v
+
+        def cos_func(dataset, v=cos_values):
+            return v
+
         # With tolerance=1, 5-dollar diff should not match
         result_strict = compare_variable(ds, cos_func, pe_values, "eitc", tolerance=1.0)
         assert result_strict.match_rate == 0.0
@@ -145,7 +159,9 @@ class TestCompareVariable:
     def test_result_has_values(self):
         ds = _make_common_dataset(100)
         pe_values = np.ones(ds.n_records) * 1000
-        cos_func = lambda dataset: np.ones(dataset.n_records) * 1000
+        def cos_func(dataset):
+            return np.ones(dataset.n_records) * 1000
+
         result = compare_variable(ds, cos_func, pe_values, "eitc")
         assert len(result.cosilico_values) == ds.n_records
         assert len(result.policyengine_values) == ds.n_records
@@ -165,7 +181,7 @@ class TestVarExists:
 
 class TestLoadCommonDataset:
     def test_requires_policyengine(self):
-        from cosilico_validators.comparison.aligned import load_common_dataset, HAS_POLICYENGINE
+        from cosilico_validators.comparison.aligned import HAS_POLICYENGINE, load_common_dataset
         if not HAS_POLICYENGINE:
             with pytest.raises(ImportError):
                 load_common_dataset()
@@ -222,20 +238,19 @@ class TestLoadCommonDataset:
 
         mock_sim.calculate.side_effect = mock_calculate
 
-        with patch.dict(sys.modules, {"policyengine_us": mock_pe}):
-            # Need to reimport with HAS_POLICYENGINE=True
-            with patch("cosilico_validators.comparison.aligned.HAS_POLICYENGINE", True), \
-                 patch("cosilico_validators.comparison.aligned.Microsimulation", mock_pe.Microsimulation):
-                from cosilico_validators.comparison.aligned import load_common_dataset
-                ds = load_common_dataset(year=2024)
-                assert ds.n_records == n_tax_units
-                assert len(ds.weight) == n_tax_units
-                # Check that blind person on tax unit 3 (head) was detected
-                assert ds.head_is_blind[3] == True  # noqa: E712  (numpy bool)
-                # Check that head who is also a dependent was detected
-                assert ds.head_is_dependent[3] == True  # noqa: E712
-                # Check that blind spouse on tax unit 3 was detected
-                assert ds.spouse_is_blind[3] == True  # noqa: E712
+        with patch.dict(sys.modules, {"policyengine_us": mock_pe}), \
+             patch("cosilico_validators.comparison.aligned.HAS_POLICYENGINE", True), \
+             patch("cosilico_validators.comparison.aligned.Microsimulation", mock_pe.Microsimulation):
+            from cosilico_validators.comparison.aligned import load_common_dataset
+            ds = load_common_dataset(year=2024)
+            assert ds.n_records == n_tax_units
+            assert len(ds.weight) == n_tax_units
+            # Check that blind person on tax unit 3 (head) was detected
+            assert ds.head_is_blind[3] == True  # noqa: E712  (numpy bool)
+            # Check that head who is also a dependent was detected
+            assert ds.head_is_dependent[3] == True  # noqa: E712
+            # Check that blind spouse on tax unit 3 was detected
+            assert ds.spouse_is_blind[3] == True  # noqa: E712
 
 
 class TestRunAlignedComparison:
@@ -269,12 +284,11 @@ class TestRunAlignedComparison:
             "policyengine_us": mock_pe,
             "cosilico_runner": mock_runner,
             "pandas": MagicMock(),
-        }):
-            with patch("cosilico_validators.comparison.aligned.HAS_POLICYENGINE", True), \
+        }), patch("cosilico_validators.comparison.aligned.HAS_POLICYENGINE", True), \
                  patch("cosilico_validators.comparison.aligned.Microsimulation", mock_pe.Microsimulation), \
                  patch("cosilico_validators.comparison.aligned.load_common_dataset", return_value=mock_ds):
-                from cosilico_validators.comparison.aligned import run_aligned_comparison
-                result = run_aligned_comparison(year=2024)
-                assert "metadata" in result
-                assert "summary" in result
-                assert "variables" in result
+            from cosilico_validators.comparison.aligned import run_aligned_comparison
+            result = run_aligned_comparison(year=2024)
+            assert "metadata" in result
+            assert "summary" in result
+            assert "variables" in result

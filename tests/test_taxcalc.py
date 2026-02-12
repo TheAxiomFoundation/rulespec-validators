@@ -6,13 +6,13 @@ from cosilico_validators.validators.base import TestCase, ValidatorType
 from cosilico_validators.validators.taxcalc import (
     MARS_MAPPING,
     SUPPORTED_VARIABLES,
-    TaxCalculatorValidator,
     VARIABLE_MAPPING,
+    TaxCalculatorValidator,
 )
 
 # Check if taxcalc is available
 try:
-    import taxcalc
+    import taxcalc  # noqa: F401
 
     HAS_TAXCALC = True
 except ImportError:

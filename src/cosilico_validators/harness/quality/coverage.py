@@ -8,7 +8,6 @@ from pathlib import Path
 
 from .. import QualityIssue
 
-
 # Pattern to find variable declarations
 VARIABLE_PATTERN = re.compile(r"^variable\s+(\w+):")
 # Pattern to find formula blocks

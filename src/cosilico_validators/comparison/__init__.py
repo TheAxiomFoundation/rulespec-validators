@@ -1,5 +1,12 @@
 """Record-by-record Cosilico vs PolicyEngine comparison."""
 
+from .aligned import (
+    CommonDataset,
+    ComparisonResult,
+    compare_variable,
+    load_common_dataset,
+    run_aligned_comparison,
+)
 from .core import (
     compare_records,
     generate_dashboard_json,
@@ -7,14 +14,6 @@ from .core import (
     load_pe_values,
     run_full_comparison,
     run_variable_comparison,
-)
-
-from .aligned import (
-    CommonDataset,
-    ComparisonResult,
-    load_common_dataset,
-    compare_variable,
-    run_aligned_comparison,
 )
 
 __all__ = [

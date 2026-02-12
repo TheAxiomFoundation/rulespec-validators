@@ -9,7 +9,6 @@ from pathlib import Path
 
 from .. import QualityIssue
 
-
 # Pattern to match imports section
 IMPORTS_START = re.compile(r"^\s*imports:")
 # Pattern to match individual import
@@ -109,33 +108,30 @@ def check_imports(rac_files: list[Path], statute_root: Path) -> tuple[list[Quali
                             found_file = True
                             break
 
-                    if not found_file:
-                        # Check if it's in our index (might be a different form)
-                        if import_path not in variable_index:
-                            issues.append(
-                                QualityIssue(
-                                    file=str(rac_file),
-                                    line=i,
-                                    category="import",
-                                    severity="warning",
-                                    message=f"Import path '{import_path}' does not exist.",
-                                )
+                    if not found_file and import_path not in variable_index:
+                        issues.append(
+                            QualityIssue(
+                                file=str(rac_file),
+                                line=i,
+                                category="import",
+                                severity="warning",
+                                message=f"Import path '{import_path}' does not exist.",
                             )
-                            all_valid = False
-                            continue
+                        )
+                        all_valid = False
+                        continue
 
                     # Check if variable exists in that file
-                    if import_path in variable_index:
-                        if var_name not in variable_index[import_path]:
-                            issues.append(
-                                QualityIssue(
-                                    file=str(rac_file),
-                                    line=i,
-                                    category="import",
-                                    severity="warning",
-                                    message=f"Variable '{var_name}' not found in '{import_path}'.",
-                                )
+                    if import_path in variable_index and var_name not in variable_index[import_path]:
+                        issues.append(
+                            QualityIssue(
+                                file=str(rac_file),
+                                line=i,
+                                category="import",
+                                severity="warning",
+                                message=f"Variable '{var_name}' not found in '{import_path}'.",
                             )
-                            all_valid = False
+                        )
+                        all_valid = False
 
     return issues, all_valid

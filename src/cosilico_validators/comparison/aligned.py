@@ -5,6 +5,7 @@ Uses PolicyEngine's input data for both systems to isolate rule differences.
 
 from dataclasses import dataclass
 from typing import Callable
+
 import numpy as np
 
 try:
@@ -209,7 +210,7 @@ def _var_exists(sim, var_name: str, year: int) -> bool:
     try:
         sim.calculate(var_name, year)
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -267,8 +268,8 @@ def run_aligned_comparison(year: int = 2024) -> dict:
     Returns dashboard-formatted results.
     """
     import sys
-    from pathlib import Path
     from datetime import datetime
+    from pathlib import Path
 
     # Load common dataset
     print("Loading common dataset from PolicyEngine...")
@@ -278,8 +279,8 @@ def run_aligned_comparison(year: int = 2024) -> dict:
     # Load Cosilico implementations
     data_sources_path = Path.home() / "CosilicoAI" / "cosilico-data-sources" / "micro" / "us"
     sys.path.insert(0, str(data_sources_path))
-    from cosilico_runner import PARAMS_2024, calculate_eitc, calculate_income_tax
     import pandas as pd
+    from cosilico_runner import PARAMS_2024, calculate_eitc, calculate_income_tax
 
     # Get PE values
     sim = Microsimulation()

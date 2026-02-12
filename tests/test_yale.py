@@ -1,14 +1,15 @@
 """Tests for Yale Tax-Simulator validator."""
 
-import pytest
-from unittest.mock import patch, MagicMock
 from pathlib import Path
+from unittest.mock import patch
+
+import pytest
 
 from cosilico_validators import TestCase, ValidatorType
 from cosilico_validators.validators.yale import (
-    YaleTaxValidator,
-    VARIABLE_MAPPING,
     SUPPORTED_VARIABLES,
+    VARIABLE_MAPPING,
+    YaleTaxValidator,
 )
 
 
@@ -46,11 +47,11 @@ class TestFilingStatusMapping:
     @pytest.fixture
     def validator_with_mocks(self):
         """Create validator with mocked dependencies."""
-        with patch.object(YaleTaxValidator, '_resolve_path') as mock_path:
-            with patch.object(YaleTaxValidator, '_check_r_available'):
-                mock_path.return_value = Path("/mock/Tax-Simulator")
-                validator = YaleTaxValidator()
-                return validator
+        with patch.object(YaleTaxValidator, '_resolve_path') as mock_path, \
+             patch.object(YaleTaxValidator, '_check_r_available'):
+            mock_path.return_value = Path("/mock/Tax-Simulator")
+            validator = YaleTaxValidator()
+            return validator
 
     def test_single_filing_status(self, validator_with_mocks):
         """Test single filing status maps to MARS=1."""
@@ -81,11 +82,11 @@ class TestSupportsVariable:
     @pytest.fixture
     def validator_with_mocks(self):
         """Create validator with mocked dependencies."""
-        with patch.object(YaleTaxValidator, '_resolve_path') as mock_path:
-            with patch.object(YaleTaxValidator, '_check_r_available'):
-                mock_path.return_value = Path("/mock/Tax-Simulator")
-                validator = YaleTaxValidator()
-                return validator
+        with patch.object(YaleTaxValidator, '_resolve_path') as mock_path, \
+             patch.object(YaleTaxValidator, '_check_r_available'):
+            mock_path.return_value = Path("/mock/Tax-Simulator")
+            validator = YaleTaxValidator()
+            return validator
 
     def test_supports_eitc(self, validator_with_mocks):
         """Test EITC is supported."""
@@ -128,11 +129,11 @@ class TestValidateWithMocks:
     @pytest.fixture
     def validator_with_mocks(self):
         """Create validator with mocked dependencies."""
-        with patch.object(YaleTaxValidator, '_resolve_path') as mock_path:
-            with patch.object(YaleTaxValidator, '_check_r_available'):
-                mock_path.return_value = Path("/mock/Tax-Simulator")
-                validator = YaleTaxValidator()
-                return validator
+        with patch.object(YaleTaxValidator, '_resolve_path') as mock_path, \
+             patch.object(YaleTaxValidator, '_check_r_available'):
+            mock_path.return_value = Path("/mock/Tax-Simulator")
+            validator = YaleTaxValidator()
+            return validator
 
     def test_unsupported_variable_returns_error(self, validator_with_mocks):
         """Test that unsupported variables return error result."""
@@ -191,11 +192,11 @@ class TestTaxUnitInputCreation:
     @pytest.fixture
     def validator_with_mocks(self):
         """Create validator with mocked dependencies."""
-        with patch.object(YaleTaxValidator, '_resolve_path') as mock_path:
-            with patch.object(YaleTaxValidator, '_check_r_available'):
-                mock_path.return_value = Path("/mock/Tax-Simulator")
-                validator = YaleTaxValidator()
-                return validator
+        with patch.object(YaleTaxValidator, '_resolve_path') as mock_path, \
+             patch.object(YaleTaxValidator, '_check_r_available'):
+            mock_path.return_value = Path("/mock/Tax-Simulator")
+            validator = YaleTaxValidator()
+            return validator
 
     def test_creates_csv_with_correct_fields(self, validator_with_mocks, tmp_path):
         """Test that input CSV has required fields."""

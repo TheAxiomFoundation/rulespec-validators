@@ -21,7 +21,6 @@ from . import (
 from .checkpoint import get_git_commit
 from .quality import run_quality_checks
 
-
 # Default paths
 COSILICO_US_ROOT = Path.home() / "CosilicoAI" / "cosilico-us"
 STATUTE_ROOT = COSILICO_US_ROOT / "statute"
@@ -83,10 +82,7 @@ class ValidationHarness:
         git_commit = get_git_commit()
 
         # Run alignment checks
-        if self.run_alignment:
-            alignment = self._run_alignment_checks()
-        else:
-            alignment = AlignmentResult(overall_rate=0.0)
+        alignment = self._run_alignment_checks() if self.run_alignment else AlignmentResult(overall_rate=0.0)
 
         # Run coverage checks
         coverage = self._run_coverage_checks()
@@ -164,7 +160,7 @@ class ValidationHarness:
 
         # Check which variables are implemented (have .rac files with engine integration)
         # For now, just check if the section path exists
-        for var_name, meta in VARIABLES.items():
+        for _var_name, meta in VARIABLES.items():
             section = meta["section"]
             section_path = self.statute_root / section
 

@@ -314,14 +314,14 @@ def compare_aligned(year, output):
     """
     from cosilico_validators.comparison import run_aligned_comparison
 
-    console.print(f"\n[bold]Aligned Comparison (Common Dataset)[/bold]")
+    console.print("\n[bold]Aligned Comparison (Common Dataset)[/bold]")
     console.print(f"Year: {year}")
     console.print("Using PE inputs for both systems to isolate rule differences\n")
 
     try:
         dashboard = run_aligned_comparison(year=year)
     except ImportError as e:
-        raise click.ClickException(str(e))
+        raise click.ClickException(str(e)) from e
 
     # Display summary
     table = Table(title="Rules Alignment Results")
@@ -370,7 +370,7 @@ def compare(year, tolerance, variables, output):
 
     variables_list = list(variables) if variables else None
 
-    console.print(f"\n[bold]Cosilico vs PolicyEngine Record Comparison[/bold]")
+    console.print("\n[bold]Cosilico vs PolicyEngine Record Comparison[/bold]")
     console.print(f"Year: {year}, Tolerance: ${tolerance:.2f}\n")
 
     try:
@@ -380,7 +380,7 @@ def compare(year, tolerance, variables, output):
             tolerance=tolerance,
         )
     except ImportError as e:
-        raise click.ClickException(str(e))
+        raise click.ClickException(str(e)) from e
 
     # Display summary
     table = Table(title="Comparison Results")
@@ -434,10 +434,11 @@ def dashboard(year, output):
         cosilico-validators dashboard -o validation-results.json
         cp validation-results.json ~/CosilicoAI/cosilico.ai/public/data/
     """
-    from cosilico_validators.dashboard_export import run_export
     from pathlib import Path
 
-    console.print(f"\n[bold]Dashboard Export[/bold]")
+    from cosilico_validators.dashboard_export import run_export
+
+    console.print("\n[bold]Dashboard Export[/bold]")
     console.print(f"Year: {year}\n")
 
     output_path = Path(output) if output else None
@@ -445,7 +446,7 @@ def dashboard(year, output):
     try:
         data = run_export(year=year, output_path=output_path)
     except ImportError as e:
-        raise click.ClickException(str(e))
+        raise click.ClickException(str(e)) from e
 
     # Display summary
     table = Table(title="Validation Summary")
@@ -498,15 +499,14 @@ def harness_run(only, output, baseline):
         cosilico-validators harness run --only quality
         cosilico-validators harness run -o current.json -b baselines/main.json
     """
-    from cosilico_validators.harness.runner import run_harness
     from cosilico_validators.harness.checkpoint import (
-        save_checkpoint,
         load_checkpoint,
-        Checkpoint,
+        save_checkpoint,
     )
+    from cosilico_validators.harness.runner import run_harness
     from cosilico_validators.harness.scorecard import generate_compact_scorecard
 
-    console.print(f"\n[bold]Cosilico Validation Harness[/bold]")
+    console.print("\n[bold]Cosilico Validation Harness[/bold]")
     if only:
         console.print(f"Running: {only}")
     console.print()
@@ -567,8 +567,8 @@ def harness_checkpoint(save, name):
         cosilico-validators harness checkpoint --save baselines/main.json
         cosilico-validators harness checkpoint --name main
     """
+    from cosilico_validators.harness.checkpoint import save_baseline
     from cosilico_validators.harness.runner import run_harness
-    from cosilico_validators.harness.checkpoint import save_baseline, get_baseline_path
 
     if save:
         console.print(f"[bold]Saving checkpoint to {save}[/bold]")
@@ -576,7 +576,7 @@ def harness_checkpoint(save, name):
         from cosilico_validators.harness.checkpoint import save_checkpoint
 
         save_checkpoint(result, Path(save))
-        console.print(f"[green]Saved![/green]")
+        console.print("[green]Saved![/green]")
     else:
         # Save to named baseline
         console.print(f"[bold]Saving checkpoint: {name}[/bold]")
@@ -594,14 +594,14 @@ def harness_compare(baseline, current):
     Example:
         cosilico-validators harness compare -b baselines/main.json
     """
-    from cosilico_validators.harness.runner import run_harness
     from cosilico_validators.harness.checkpoint import (
-        load_checkpoint,
-        compare_checkpoints,
         Checkpoint,
+        compare_checkpoints,
+        load_checkpoint,
     )
+    from cosilico_validators.harness.runner import run_harness
 
-    console.print(f"\n[bold]Comparing against baseline[/bold]")
+    console.print("\n[bold]Comparing against baseline[/bold]")
 
     # Load baseline
     baseline_cp = load_checkpoint(Path(baseline))
@@ -675,11 +675,11 @@ def harness_scorecard(before, after, output):
     Example:
         cosilico-validators harness scorecard -b main.json -a current.json -o scorecard.md
     """
+    from cosilico_validators.harness.checkpoint import load_checkpoint
     from cosilico_validators.harness.runner import run_harness
-    from cosilico_validators.harness.checkpoint import load_checkpoint, Checkpoint
     from cosilico_validators.harness.scorecard import generate_scorecard
 
-    console.print(f"\n[bold]Generating Scorecard[/bold]\n")
+    console.print("\n[bold]Generating Scorecard[/bold]\n")
 
     # Load before checkpoint
     baseline = None

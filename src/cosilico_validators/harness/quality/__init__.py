@@ -4,9 +4,9 @@ from pathlib import Path
 from typing import Optional
 
 from .. import QualityIssue, QualityResult
-from .schema import check_schema
 from .coverage import check_test_coverage
 from .imports import check_imports
+from .schema import check_schema
 
 
 def run_quality_checks(

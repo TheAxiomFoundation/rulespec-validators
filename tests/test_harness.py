@@ -1,29 +1,42 @@
 """Tests for harness module - __init__.py, checkpoint.py, runner.py, scorecard.py."""
 
-import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from cosilico_validators.harness import (
-    AlignmentResult, Checkpoint, CoverageResult, Delta,
-    HarnessResult, QualityIssue, QualityResult, ReviewResult,
+    AlignmentResult,
+    Checkpoint,
+    CoverageResult,
+    Delta,
+    HarnessResult,
+    QualityIssue,
+    QualityResult,
+    ReviewResult,
     VariableAlignment,
 )
 from cosilico_validators.harness.checkpoint import (
-    compare_checkpoints, create_empty_checkpoint, get_baseline_path,
-    get_git_commit, load_baseline, load_checkpoint, save_baseline,
+    compare_checkpoints,
+    create_empty_checkpoint,
+    get_baseline_path,
+    get_git_commit,
+    load_baseline,
+    load_checkpoint,
+    save_baseline,
     save_checkpoint,
 )
 from cosilico_validators.harness.runner import (
-    ValidationHarness, VARIABLES, run_harness,
+    VARIABLES,
+    ValidationHarness,
+    run_harness,
 )
 from cosilico_validators.harness.scorecard import (
-    format_delta, format_percentage, generate_compact_scorecard,
+    format_delta,
+    format_percentage,
+    generate_compact_scorecard,
     generate_scorecard,
 )
-
 
 # ============================================================================
 # harness/__init__.py dataclass tests

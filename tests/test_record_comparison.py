@@ -3,9 +3,10 @@
 TDD: Write tests first for what the harness should do.
 """
 
+from unittest.mock import MagicMock, patch
+
 import numpy as np
 import pytest
-from unittest.mock import MagicMock, patch
 
 
 class TestRecordComparison:
@@ -102,8 +103,9 @@ class TestCPSComparison:
 
     def test_load_cosilico_values_for_variable(self, tmp_path):
         """Should load Cosilico-computed values for a variable across CPS."""
-        from cosilico_validators.comparison import load_cosilico_values
         import pandas as pd
+
+        from cosilico_validators.comparison import load_cosilico_values
 
         # Create data sources directory
         data_dir = tmp_path / "CosilicoAI" / "cosilico-data-sources" / "micro" / "us"
@@ -135,17 +137,17 @@ class TestCPSComparison:
         """Should run full comparison for a single variable."""
         from cosilico_validators.comparison import run_variable_comparison
 
-        with patch("cosilico_validators.comparison.core.load_pe_values") as mock_pe:
-            with patch("cosilico_validators.comparison.core.load_cosilico_values") as mock_cos:
-                # Return (values, ids) tuples since return_ids=True
-                mock_pe.return_value = (np.array([100.0, 200.0, 300.0]), np.array([1, 2, 3]))
-                mock_cos.return_value = (np.array([100.0, 200.0, 300.0]), np.array([1, 2, 3]))
+        with patch("cosilico_validators.comparison.core.load_pe_values") as mock_pe, \
+             patch("cosilico_validators.comparison.core.load_cosilico_values") as mock_cos:
+            # Return (values, ids) tuples since return_ids=True
+            mock_pe.return_value = (np.array([100.0, 200.0, 300.0]), np.array([1, 2, 3]))
+            mock_cos.return_value = (np.array([100.0, 200.0, 300.0]), np.array([1, 2, 3]))
 
-                result = run_variable_comparison("income_tax", year=2024)
+            result = run_variable_comparison("income_tax", year=2024)
 
-                assert result["variable"] == "income_tax"
-                assert result["match_rate"] == 1.0
-                assert result["matched_records"] == 3
+            assert result["variable"] == "income_tax"
+            assert result["match_rate"] == 1.0
+            assert result["matched_records"] == 3
 
 
 class TestComparisonDashboard:

@@ -7,6 +7,7 @@ Variable mappings are loaded from variable_mappings.yaml, which references
 statute definitions in cosilico-us (e.g., 26/32/eitc.rac::earned_income_tax_credit).
 """
 
+import contextlib
 import sys
 import time
 from dataclasses import dataclass
@@ -130,8 +131,8 @@ def _load_cosilico_data_sources():
     if str(data_sources) not in sys.path:
         sys.path.insert(0, str(data_sources))
 
-    from tax_unit_builder import load_and_build_tax_units
     from cosilico_runner import run_all_calculations
+    from tax_unit_builder import load_and_build_tax_units
 
     return load_and_build_tax_units, run_all_calculations
 
@@ -223,7 +224,6 @@ def load_taxsim_values(
         TimedResult with dict of arrays and elapsed time in ms.
     """
     import csv
-    import io
     import subprocess
 
     from cosilico_validators.comparison.multi_validator import get_taxsim_executable_path
@@ -386,16 +386,12 @@ def compare_cps_totals(
         model_results["cosilico"] = load_cosilico_cps(year)
 
     if "policyengine" in models:
-        try:
+        with contextlib.suppress(ImportError):
             model_results["policyengine"] = load_policyengine_values(year, variables)
-        except ImportError:
-            pass  # PolicyEngine not installed
 
     if "taxcalc" in models:
-        try:
+        with contextlib.suppress(ImportError):
             model_results["taxcalc"] = load_taxcalc_values(year, variables)
-        except ImportError:
-            pass  # Tax-Calculator not installed
 
     if "taxsim" in models:
         try:
@@ -503,7 +499,7 @@ def generate_report(year: int = 2024) -> str:
         "-" * 100,
     ]
 
-    for var_name, totals in comparison.items():
+    for _var_name, totals in comparison.items():
         row_parts = [f"{totals.title:<25}"]
         for model in model_names:
             val = totals.get_total(model) / 1e9

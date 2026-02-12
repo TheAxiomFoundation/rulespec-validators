@@ -1,24 +1,22 @@
 """Tests for Tax-Calculator validator - full coverage."""
 
-import pytest
 from unittest.mock import MagicMock, patch
-import pandas as pd
 
-from cosilico_validators.validators.base import TestCase, ValidatorType
+import pandas as pd
+import pytest
+
+from cosilico_validators.validators.base import TestCase
 from cosilico_validators.validators.taxcalc import (
     TaxCalculatorValidator,
-    VARIABLE_MAPPING,
-    SUPPORTED_VARIABLES,
-    MARS_MAPPING,
 )
 
 
 class TestGetTcModule:
     def test_import_error(self):
         v = TaxCalculatorValidator()
-        with patch.dict("sys.modules", {"taxcalc": None}):
-            with pytest.raises(ImportError, match="taxcalc not installed"):
-                v._get_tc_module()
+        with patch.dict("sys.modules", {"taxcalc": None}), \
+             pytest.raises(ImportError, match="taxcalc not installed"):
+            v._get_tc_module()
 
     def test_cached(self):
         v = TaxCalculatorValidator()

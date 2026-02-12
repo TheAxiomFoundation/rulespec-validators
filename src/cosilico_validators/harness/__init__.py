@@ -5,8 +5,6 @@ quality checks for .rac files, and PR scorecard generation.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
-from pathlib import Path
 from typing import Optional
 
 __all__ = [

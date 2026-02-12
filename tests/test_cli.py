@@ -9,7 +9,7 @@ from click.testing import CliRunner
 
 from cosilico_validators.cli import cli, display_results, display_summary
 from cosilico_validators.consensus.engine import ConsensusLevel
-from cosilico_validators.validators.base import TestCase, ValidatorResult, ValidatorType
+from cosilico_validators.validators.base import TestCase, ValidatorType
 
 
 @pytest.fixture
@@ -114,8 +114,13 @@ def _make_mock_validation_result():
 def _make_harness_result(with_alignment=False, with_issues=False, with_review=False):
     """Create a real HarnessResult for CLI testing."""
     from cosilico_validators.harness import (
-        AlignmentResult, CoverageResult, QualityResult, QualityIssue,
-        HarnessResult, ReviewResult, VariableAlignment,
+        AlignmentResult,
+        CoverageResult,
+        HarnessResult,
+        QualityIssue,
+        QualityResult,
+        ReviewResult,
+        VariableAlignment,
     )
     by_variable = {}
     if with_alignment:
@@ -154,20 +159,13 @@ def _make_harness_result(with_alignment=False, with_issues=False, with_review=Fa
 class TestLoadValidators:
     def test_load_both(self):
         from cosilico_validators.cli import load_validators
-        with patch("cosilico_validators.cli.TaxsimValidator", create=True) as mock_ts, \
-             patch("cosilico_validators.cli.PolicyEngineValidator", create=True) as mock_pe:
-            # Mock the imports inside load_validators
-            mock_ts_class = MagicMock()
-            mock_pe_class = MagicMock()
-
-            import cosilico_validators.cli as cli_mod
-            original = cli_mod.load_validators
-
-            with patch("cosilico_validators.validators.taxsim.TaxsimValidator") as ts_cls, \
-                 patch("cosilico_validators.validators.policyengine.PolicyEngineValidator") as pe_cls:
-                # The function does lazy imports, so we patch the import mechanism
-                validators = load_validators(include_policyengine=True, include_taxsim=True)
-                assert isinstance(validators, list)
+        with patch("cosilico_validators.cli.TaxsimValidator", create=True), \
+             patch("cosilico_validators.cli.PolicyEngineValidator", create=True), \
+             patch("cosilico_validators.validators.taxsim.TaxsimValidator"), \
+             patch("cosilico_validators.validators.policyengine.PolicyEngineValidator"):
+            # The function does lazy imports, so we patch the import mechanism
+            validators = load_validators(include_policyengine=True, include_taxsim=True)
+            assert isinstance(validators, list)
 
     def test_load_taxsim_only(self):
         from cosilico_validators.cli import load_validators

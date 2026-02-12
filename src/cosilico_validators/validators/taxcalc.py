@@ -384,6 +384,6 @@ class TaxCalculatorValidator(BaseValidator):
 
             return outputs
 
-        except Exception as e:
+        except Exception:
             # Return None for all variables on error
-            return {var: None for var in VARIABLE_MAPPING.keys()}
+            return {var: None for var in VARIABLE_MAPPING}

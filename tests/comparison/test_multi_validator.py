@@ -1,15 +1,15 @@
 """Tests for comparison/multi_validator.py module."""
 
-import numpy as np
-import pytest
 from unittest.mock import MagicMock, patch
 
+import numpy as np
+
 from cosilico_validators.comparison.multi_validator import (
-    ValidatorComparison,
-    MultiValidatorResult,
     TAXSIM_DOWNLOAD_URLS,
-    compare_single_case,
+    MultiValidatorResult,
+    ValidatorComparison,
     compare_microdata,
+    compare_single_case,
     get_taxsim_executable_path,
 )
 from cosilico_validators.validators.base import TestCase
@@ -304,19 +304,19 @@ class TestCompareMicrodata:
             return TestCase(name=f"case_{i}", inputs={}, expected={})
 
         with patch("cosilico_validators.comparison.multi_validator.TaxsimValidator",
-                    side_effect=Exception("init failed")):
-            with patch("cosilico_validators.comparison.multi_validator.get_taxsim_executable_path",
-                        return_value="/tmp/taxsim"):
-                result = compare_microdata(
-                    cosilico_values=cosilico_values,
-                    input_builder=input_builder,
-                    variable="eitc",
-                    year=2023,
-                    validators=["taxsim"],
-                    taxsim_mode="local",
-                )
-                # No validators succeeded
-                assert result.validators_used == []
+                    side_effect=Exception("init failed")), \
+             patch("cosilico_validators.comparison.multi_validator.get_taxsim_executable_path",
+                   return_value="/tmp/taxsim"):
+            result = compare_microdata(
+                cosilico_values=cosilico_values,
+                input_builder=input_builder,
+                variable="eitc",
+                year=2023,
+                validators=["taxsim"],
+                taxsim_mode="local",
+            )
+            # No validators succeeded
+            assert result.validators_used == []
 
     def test_compare_microdata_without_batch(self):
         """Test fallback to single validation when batch_validate not available."""

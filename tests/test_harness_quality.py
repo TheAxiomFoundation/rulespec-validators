@@ -1,25 +1,33 @@
 """Tests for harness/quality submodules: __init__.py, coverage.py, imports.py, schema.py."""
 
-import pytest
 from pathlib import Path
 
+from cosilico_validators.harness import QualityResult
 from cosilico_validators.harness.quality import run_quality_checks
 from cosilico_validators.harness.quality.coverage import (
+    FORMULA_PATTERN,
+    TEST_CASE_PATTERN,
+    TESTS_PATTERN,
+    VARIABLE_PATTERN,
     check_test_coverage,
-    VARIABLE_PATTERN, FORMULA_PATTERN, TESTS_PATTERN, TEST_CASE_PATTERN,
 )
 from cosilico_validators.harness.quality.imports import (
+    IMPORT_PATTERN,
+    IMPORTS_START,
     check_imports,
-    IMPORTS_START, IMPORT_PATTERN,
 )
 from cosilico_validators.harness.quality.schema import (
+    ALLOWED_INTEGERS,
+    DTYPE_PATTERN,
+    ENTITY_PATTERN,
+    FORMULA_START,
+    LITERAL_PATTERN,
+    PERIOD_PATTERN,
+    VALID_DTYPES,
+    VALID_ENTITIES,
+    VALID_PERIODS,
     check_schema,
-    VALID_ENTITIES, VALID_PERIODS, VALID_DTYPES, ALLOWED_INTEGERS,
-    ENTITY_PATTERN, PERIOD_PATTERN, DTYPE_PATTERN,
-    FORMULA_START, FORMULA_LINE, LITERAL_PATTERN,
 )
-from cosilico_validators.harness import QualityIssue, QualityResult
-
 
 # ============================================================================
 # quality/__init__.py
@@ -255,7 +263,7 @@ class TestCheckImports:
         bad_file = tmp_path / "bad.rac"
         bad_file.write_text("valid content")
         # Make it unreadable by patching
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import patch
         original_read = Path.read_text
         call_count = [0]
         def mock_read(self_path, *args, **kwargs):
@@ -364,7 +372,7 @@ class TestSchemaPatterns:
         assert "Boolean" in VALID_DTYPES
 
     def test_allowed_integers(self):
-        assert ALLOWED_INTEGERS == {-1, 0, 1, 2, 3}
+        assert {-1, 0, 1, 2, 3} == ALLOWED_INTEGERS
 
 
 class TestCheckSchema:

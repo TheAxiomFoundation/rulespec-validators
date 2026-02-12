@@ -1,8 +1,9 @@
 """Tests for comparison/core.py module."""
 
+from unittest.mock import MagicMock, patch
+
 import numpy as np
 import pytest
-from unittest.mock import MagicMock, patch
 
 from cosilico_validators.comparison.core import (
     align_records,
@@ -125,9 +126,9 @@ class TestLoadCosilicoValues:
             assert len(result) == 3
 
     def test_missing_data_sources(self, tmp_path):
-        with patch("pathlib.Path.home", return_value=tmp_path):
-            with pytest.raises(ImportError, match="cosilico-data-sources not found"):
-                load_cosilico_values("eitc")
+        with patch("pathlib.Path.home", return_value=tmp_path), \
+             pytest.raises(ImportError, match="cosilico-data-sources not found"):
+            load_cosilico_values("eitc")
 
     def test_load_values_with_ids(self, tmp_path):
         """Test return_ids=True path."""

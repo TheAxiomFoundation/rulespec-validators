@@ -7,10 +7,9 @@ to measure agreement.
 
 import numpy as np
 import pandas as pd
-from policyengine_us import Microsimulation
-
-from tax_unit_builder import load_and_build_tax_units
 from cosilico_runner import run_all_calculations
+from policyengine_us import Microsimulation
+from tax_unit_builder import load_and_build_tax_units
 
 
 def get_pe_values(year: int = 2024) -> pd.DataFrame:
@@ -81,10 +80,7 @@ def compare_calculations(cos_df: pd.DataFrame, pe_df: pd.DataFrame) -> dict:
 
         # Correlation (for non-zero values)
         mask = (cos_vals > 0) | (pe_vals > 0)
-        if mask.sum() > 10:
-            corr = np.corrcoef(cos_vals[mask], pe_vals[mask])[0, 1]
-        else:
-            corr = np.nan
+        corr = np.corrcoef(cos_vals[mask], pe_vals[mask])[0, 1] if mask.sum() > 10 else np.nan
 
         print(f"{label:<20} {match_rate:>9.1f}% ${mean_diff:>14,.0f} {corr:>10.4f}")
 

@@ -98,7 +98,7 @@ def run_policyengine(df: pd.DataFrame, year: int = 2024) -> tuple[pd.DataFrame, 
     results = []
 
     # Run PE on each tax unit
-    for idx, row in df.iterrows():
+    for _idx, row in df.iterrows():
         situation = _create_pe_situation(row, year)
         sim = Simulation(situation=situation)
 
@@ -167,7 +167,7 @@ def _create_pe_situation(row: pd.Series, year: int) -> dict:
     # Dependents - use CPS counts for EITC/CTC qualifying children
     n_eitc_children = _safe_int(row.get("num_eitc_children"))
     n_ctc_children = _safe_int(row.get("num_ctc_children"))
-    n_other_deps = _safe_int(row.get("num_other_dependents", 0))
+    _safe_int(row.get("num_other_dependents", 0))
 
     # EITC-qualifying children (under 19, or under 24 if student)
     for i in range(n_eitc_children):
@@ -228,7 +228,6 @@ def _create_pe_situation(row: pd.Series, year: int) -> dict:
 def run_taxsim(df: pd.DataFrame, year: int = 2024) -> tuple[pd.DataFrame, float]:
     """Run TAXSIM on CPS data. Returns (results_df, elapsed_ms)."""
     import csv
-    import io
     import subprocess
 
     from cosilico_validators.comparison.multi_validator import get_taxsim_executable_path
@@ -240,7 +239,7 @@ def run_taxsim(df: pd.DataFrame, year: int = 2024) -> tuple[pd.DataFrame, float]
     # Build TAXSIM input
     lines = ["taxsimid,year,state,mstat,page,sage,depx,pwages,swages,dividends,intrec,ltcg,stcg,otherprop,pensions,gssi,psemp,ssemp,idtl"]
 
-    for i, (idx, row) in enumerate(df.iterrows()):
+    for i, (_idx, row) in enumerate(df.iterrows()):
         mstat = 2 if row.get("is_joint", False) else 1
         page = max(1, _safe_int(row.get("head_age"), 40))
         sage = _safe_int(row.get("spouse_age"), 0) if mstat == 2 else 0
@@ -372,12 +371,12 @@ def print_comparison(results: dict[str, RecordComparison]):
         print(f"\n{var.upper()}")
         print("-" * 40)
         print(f"  Records: {comp.n_records:,}")
-        print(f"  Weighted totals:")
+        print("  Weighted totals:")
         for model, total in totals.items():
             print(f"    {model:15} ${total/1e9:>10.1f}B")
 
         mae = comp.mean_abs_diff_vs_pe
-        print(f"  Mean abs diff vs PE:")
+        print("  Mean abs diff vs PE:")
         for model, diff in mae.items():
             print(f"    {model:15} ${diff:>10.0f}")
 

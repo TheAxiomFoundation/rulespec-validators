@@ -1,13 +1,12 @@
 """Tests for PolicyEngine validator - full coverage."""
 
-import pytest
 from unittest.mock import MagicMock, patch
 
-from cosilico_validators.validators.base import TestCase, ValidatorType, ValidatorResult
+import pytest
+
+from cosilico_validators.validators.base import TestCase, ValidatorType
 from cosilico_validators.validators.policyengine import (
     PolicyEngineValidator,
-    VARIABLE_MAPPING,
-    SUPPORTED_VARIABLES,
 )
 
 
@@ -20,9 +19,9 @@ class TestPolicyEngineValidatorInit:
 
     def test_get_simulation_class_import_error(self):
         v = PolicyEngineValidator()
-        with patch.dict("sys.modules", {"policyengine_us": None}):
-            with pytest.raises(ImportError, match="policyengine-us not installed"):
-                v._get_simulation_class()
+        with patch.dict("sys.modules", {"policyengine_us": None}), \
+             pytest.raises(ImportError, match="policyengine-us not installed"):
+            v._get_simulation_class()
 
     def test_get_simulation_class_success(self):
         v = PolicyEngineValidator()
@@ -152,7 +151,7 @@ class TestValidate:
         v._simulation_class = mock_sim_cls
 
         tc = TestCase(name="test", inputs={"earned_income": 30000}, expected={})
-        result = v.validate(tc, "earned_income_credit", 2024)
+        v.validate(tc, "earned_income_credit", 2024)
         mock_sim_instance.calculate.assert_called_with("eitc", 2024)
 
     def test_result_metadata(self):

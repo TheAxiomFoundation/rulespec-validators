@@ -1,17 +1,14 @@
 """Tests for upstream/github module."""
 
-import json
 import os
 from unittest.mock import MagicMock, patch
 
-import pytest
-
+from cosilico_validators.upstream import GitHubIssueManager as UpstreamGitHubIssueManager
 from cosilico_validators.upstream.github import (
+    VALIDATOR_REPOS,
     GitHubIssueManager,
     IssueReport,
-    VALIDATOR_REPOS,
 )
-from cosilico_validators.upstream import GitHubIssueManager as UpstreamGitHubIssueManager
 
 
 class TestUpstreamInit:

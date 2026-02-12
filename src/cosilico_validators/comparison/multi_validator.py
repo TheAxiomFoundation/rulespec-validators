@@ -14,13 +14,13 @@ import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
+
 import numpy as np
 
-from cosilico_validators.validators.base import TestCase, ValidatorResult
+from cosilico_validators.validators.base import TestCase
 from cosilico_validators.validators.policyengine import PolicyEngineValidator
-from cosilico_validators.validators.taxsim import TaxsimValidator
 from cosilico_validators.validators.taxcalc import TaxCalculatorValidator
-
+from cosilico_validators.validators.taxsim import TaxsimValidator
 
 # TAXSIM executable download URLs (from policyengine-taxsim repo)
 # These are bundled in https://github.com/PolicyEngine/policyengine-taxsim
@@ -54,7 +54,7 @@ def get_taxsim_executable_path() -> Path:
     exe_path = cache_dir / exe_name
 
     if not exe_path.exists():
-        print(f"Downloading TAXSIM from policyengine-taxsim repo...")
+        print("Downloading TAXSIM from policyengine-taxsim repo...")
         print(f"  URL: {url}")
         urllib.request.urlretrieve(url, exe_path)
         # Make executable on Unix
