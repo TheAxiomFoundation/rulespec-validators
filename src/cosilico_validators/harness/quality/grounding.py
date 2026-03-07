@@ -136,6 +136,8 @@ def extract_numbers_from_text(text: str) -> set[float]:
     - Percentages: 7.65%, 34%
     - Decimals: 0.075, 0.3540
     - Negative: -1000
+    - Written percentages: "15 percent" -> 0.15, 15
+    - Fractions: "one-half" -> 0.5
     """
     numbers = set()
 
@@ -147,6 +149,32 @@ def extract_numbers_from_text(text: str) -> set[float]:
         raw = m.group(1).replace(",", "")
         with contextlib.suppress(ValueError):
             numbers.add(float(raw))
+
+    # "X percent" / "X per centum" -> also add X/100 as decimal
+    percent_pattern = re.compile(
+        r"(\d+(?:\.\d+)?)\s+(?:percent|per\s*centum)", re.IGNORECASE
+    )
+    for m in percent_pattern.finditer(text):
+        with contextlib.suppress(ValueError):
+            numbers.add(float(m.group(1)) / 100)
+
+    # Common written fractions
+    fraction_words = {
+        "one-half": 0.5,
+        "one half": 0.5,
+        "one-third": 1 / 3,
+        "one third": 1 / 3,
+        "two-thirds": 2 / 3,
+        "two thirds": 2 / 3,
+        "one-quarter": 0.25,
+        "one quarter": 0.25,
+        "three-quarters": 0.75,
+        "three quarters": 0.75,
+    }
+    text_lower = text.lower()
+    for word, val in fraction_words.items():
+        if word in text_lower:
+            numbers.add(val)
 
     return numbers
 

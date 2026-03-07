@@ -491,6 +491,27 @@ class TestExtractNumbersFromText:
         nums = extract_numbers_from_text("rate of 7.65 percent")
         assert 7.65 in nums
 
+    def test_written_percent_to_decimal(self):
+        nums = extract_numbers_from_text("15 percent of earned income")
+        assert 15 in nums
+        assert 0.15 in nums
+
+    def test_written_percent_decimal_value(self):
+        nums = extract_numbers_from_text("50 percent of the taxes imposed")
+        assert 0.50 in nums
+
+    def test_per_centum(self):
+        nums = extract_numbers_from_text("7.65 per centum of wages")
+        assert 0.0765 in nums
+
+    def test_fraction_one_half(self):
+        nums = extract_numbers_from_text("one-half of such amount")
+        assert 0.5 in nums
+
+    def test_fraction_two_thirds(self):
+        nums = extract_numbers_from_text("two-thirds of the applicable amount")
+        assert abs(2 / 3 - min(nums, key=lambda x: abs(x - 2 / 3))) < 1e-10
+
     def test_plain_integers(self):
         nums = extract_numbers_from_text("increased to 400 for 1998")
         assert 400 in nums
@@ -588,9 +609,18 @@ class TestCheckGrounding:
             [rac_file],
             rule_text_by_file={str(rac_file): "credit percentage is 35.40 percent"},
         )
-        # 0.3540 is not literally "35.40" — this tests exact matching
-        # The rule text has 35.40, the encoding has 0.3540
+        # "35.40 percent" -> 0.354 which matches 0.3540
+        assert all_grounded is True
+
+    def test_per_file_rule_text_ungrounded(self, tmp_path):
+        rac_file = tmp_path / "test.rac"
+        rac_file.write_text("rate:\n  from 2020-01-01: 0.99\n")
+        issues, all_grounded = check_grounding(
+            [rac_file],
+            rule_text_by_file={str(rac_file): "credit percentage is 35.40 percent"},
+        )
         assert all_grounded is False
+        assert len(issues) == 1
 
     def test_unreadable_file_skipped(self, tmp_path):
         bad_file = tmp_path / "nonexistent.rac"
