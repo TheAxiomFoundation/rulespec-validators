@@ -58,6 +58,7 @@ dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
     "ruff>=0.1.0",
+    "towncrier>=23.0",
 ]
 
 [project.scripts]
@@ -96,3 +97,30 @@ exclude_lines = [
     "if __name__ == .__main__.",
     "if TYPE_CHECKING:",
 ]
+
+[tool.towncrier]
+package = "cosilico_validators"
+package_dir = "src"
+directory = "changes"
+filename = "CHANGELOG.md"
+title_format = "{name} {version} ({project_date})"
+
+[[tool.towncrier.type]]
+directory = "feature"
+name = "Features"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "bugfix"
+name = "Bug fixes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "doc"
+name = "Documentation"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "misc"
+name = "Misc"
+showcontent = true
