@@ -27,6 +27,7 @@ class TestResolvePathLocal:
     def test_search_paths_finds_existing(self, tmp_path):
         """When the taxsim35 exe exists in a search path, it should be found."""
         import platform
+
         system = platform.system().lower()
         if system == "darwin":
             exe_name = "taxsim35-osx.exe"
@@ -58,8 +59,11 @@ class TestCreateInputCsv:
     def test_create_csv_file(self):
         v = TaxsimValidator()
         taxsim_input = {
-            "taxsimid": 1, "year": 2023, "mstat": 1,
-            "pwages": 30000, "idtl": 2,
+            "taxsimid": 1,
+            "year": 2023,
+            "mstat": 1,
+            "pwages": 30000,
+            "idtl": 2,
         }
         csv_file = v._create_input_csv(taxsim_input)
         assert os.path.exists(csv_file)
@@ -93,8 +97,7 @@ class TestExecuteWeb:
         mock_result = MagicMock()
         mock_result.returncode = 0
         mock_result.stdout = ""
-        with patch("subprocess.run", return_value=mock_result), \
-             pytest.raises(RuntimeError, match="Empty response"):
+        with patch("subprocess.run", return_value=mock_result), pytest.raises(RuntimeError, match="Empty response"):
             v._execute_web("csv data")
 
     def test_html_error_response(self):
@@ -107,10 +110,13 @@ class TestExecuteWeb:
 
     def test_timeout_with_retries(self):
         import subprocess
+
         v = TaxsimValidator(max_retries=2, timeout=10)
-        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("curl", 10)), \
-             patch("time.sleep"), \
-             pytest.raises(RuntimeError, match="timeout"):
+        with (
+            patch("subprocess.run", side_effect=subprocess.TimeoutExpired("curl", 10)),
+            patch("time.sleep"),
+            pytest.raises(RuntimeError, match="timeout"),
+        ):
             v._execute_web("csv data")
 
     def test_retry_on_error(self):
@@ -137,14 +143,17 @@ class TestExecuteLocal:
         v.mode = "local"
         mock_result = MagicMock()
         mock_result.returncode = 0
-        with patch("subprocess.run", return_value=mock_result), \
-             patch("builtins.open", MagicMock()), \
-             patch("os.path.exists", return_value=True), \
-             patch("os.unlink"), \
-             patch("os.close"), \
-             patch("os.chmod"):
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch("builtins.open", MagicMock()),
+            patch("os.path.exists", return_value=True),
+            patch("os.unlink"),
+            patch("os.close"),
+            patch("os.chmod"),
+        ):
             # Need to patch the tempfile creation and file reading
             import tempfile
+
             with patch.object(tempfile, "mkstemp", return_value=(5, "/tmp/output.csv")):
                 # Patch the open for reading output
                 mock_open = MagicMock()
@@ -166,13 +175,16 @@ class TestExecuteLocal:
         mock_result.returncode = 1
         mock_result.stderr = "error occurred"
         import tempfile
-        with patch("subprocess.run", return_value=mock_result), \
-             patch("os.close"), \
-             patch("os.chmod"), \
-             patch("os.path.exists", return_value=True), \
-             patch("os.unlink"), \
-             patch.object(tempfile, "mkstemp", return_value=(5, "/tmp/output.csv")), \
-             pytest.raises(RuntimeError, match="TAXSIM failed"):
+
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch("os.close"),
+            patch("os.chmod"),
+            patch("os.path.exists", return_value=True),
+            patch("os.unlink"),
+            patch.object(tempfile, "mkstemp", return_value=(5, "/tmp/output.csv")),
+            pytest.raises(RuntimeError, match="TAXSIM failed"),
+        ):
             v._execute_local("/tmp/input.csv")
 
 
@@ -396,16 +408,19 @@ class TestExecuteLocalDarwinPath:
         mock_result.returncode = 0
 
         import tempfile
+
         # Use an environment with no homebrew paths
         env_no_brew = {"PATH": "/usr/bin:/bin"}
-        with patch("platform.system", return_value="Darwin"), \
-             patch("os.environ", env_no_brew), \
-             patch("subprocess.run", return_value=mock_result) as mock_run, \
-             patch("os.close"), \
-             patch("os.chmod"), \
-             patch("os.path.exists", return_value=True), \
-             patch("os.unlink"), \
-             patch.object(tempfile, "mkstemp", return_value=(5, "/tmp/output.csv")):
+        with (
+            patch("platform.system", return_value="Darwin"),
+            patch("os.environ", env_no_brew),
+            patch("subprocess.run", return_value=mock_result) as mock_run,
+            patch("os.close"),
+            patch("os.chmod"),
+            patch("os.path.exists", return_value=True),
+            patch("os.unlink"),
+            patch.object(tempfile, "mkstemp", return_value=(5, "/tmp/output.csv")),
+        ):
             mock_open = MagicMock()
             mock_file = MagicMock()
             mock_file.read.return_value = "taxsimid,year,fiitax\n1,2023,5000"
@@ -457,6 +472,9 @@ class TestResolveTaxsimPathEdgeCases:
     def test_not_found_anywhere(self):
         """Test FileNotFoundError when exe not found."""
         v = TaxsimValidator.__new__(TaxsimValidator)
-        with patch("platform.system", return_value="Darwin"), \
-             patch("pathlib.Path.exists", return_value=False), pytest.raises(FileNotFoundError, match="not found"):
+        with (
+            patch("platform.system", return_value="Darwin"),
+            patch("pathlib.Path.exists", return_value=False),
+            pytest.raises(FileNotFoundError, match="not found"),
+        ):
             v._resolve_taxsim_path(None)

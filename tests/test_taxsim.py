@@ -1,6 +1,5 @@
 """Tests for TAXSIM validator."""
 
-
 import pytest
 
 from cosilico_validators.validators.base import TestCase, ValidatorType

@@ -98,18 +98,13 @@ class TaxCalculatorValidator(BaseValidator):
 
                 self._tc_module = tc
             except ImportError as e:
-                raise ImportError(
-                    "taxcalc not installed. "
-                    "Install with: pip install cosilico-validators[psl]"
-                ) from e
+                raise ImportError("taxcalc not installed. Install with: pip install cosilico-validators[psl]") from e
         return self._tc_module
 
     def supports_variable(self, variable: str) -> bool:
         return variable.lower() in SUPPORTED_VARIABLES
 
-    def _build_input_dataframe(
-        self, test_case: TestCase, year: int
-    ) -> pd.DataFrame:
+    def _build_input_dataframe(self, test_case: TestCase, year: int) -> pd.DataFrame:
         """Convert test case inputs to Tax-Calculator input DataFrame.
 
         Tax-Calculator requires specific variable names. We create a
@@ -264,9 +259,7 @@ class TaxCalculatorValidator(BaseValidator):
 
         return pd.DataFrame([tc_inputs])
 
-    def validate(
-        self, test_case: TestCase, variable: str, year: int = 2024
-    ) -> ValidatorResult:
+    def validate(self, test_case: TestCase, variable: str, year: int = 2024) -> ValidatorResult:
         """Run validation using PSL Tax-Calculator.
 
         Args:
@@ -338,9 +331,7 @@ class TaxCalculatorValidator(BaseValidator):
                 metadata={"tc_variable": tc_variable, "year": year},
             )
 
-    def get_all_outputs(
-        self, test_case: TestCase, year: int = 2024
-    ) -> dict[str, float | None]:
+    def get_all_outputs(self, test_case: TestCase, year: int = 2024) -> dict[str, float | None]:
         """Calculate all supported output variables for a test case.
 
         This is useful for comparing multiple variables at once without

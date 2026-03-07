@@ -45,19 +45,32 @@ class TestTaxCase:
 class TestTaxSimResult:
     def test_creation(self):
         result = TaxSimResult(
-            taxsim_id=1, year=2023, state=0,
-            fiitax=5000, siitax=0, fica=3825,
-            frate=0.22, srate=0, ficar=0.0765,
+            taxsim_id=1,
+            year=2023,
+            state=0,
+            fiitax=5000,
+            siitax=0,
+            fica=3825,
+            frate=0.22,
+            srate=0,
+            ficar=0.0765,
         )
         assert result.taxsim_id == 1
         assert result.fiitax == 5000
 
     def test_extended_outputs(self):
         result = TaxSimResult(
-            taxsim_id=1, year=2023, state=0,
-            fiitax=5000, siitax=0, fica=3825,
-            frate=0.22, srate=0, ficar=0.0765,
-            v25_eitc=600, v22_ctc=2000,
+            taxsim_id=1,
+            year=2023,
+            state=0,
+            fiitax=5000,
+            siitax=0,
+            fica=3825,
+            frate=0.22,
+            srate=0,
+            ficar=0.0765,
+            v25_eitc=600,
+            v22_ctc=2000,
         )
         assert result.v25_eitc == 600
         assert result.v22_ctc == 2000
@@ -66,8 +79,10 @@ class TestTaxSimResult:
 class TestPolicyEngineResult:
     def test_creation(self):
         result = PolicyEngineResult(
-            adjusted_gross_income=50000, taxable_income=35400,
-            income_tax=4000, eitc=600,
+            adjusted_gross_income=50000,
+            taxable_income=35400,
+            income_tax=4000,
+            eitc=600,
         )
         assert result.adjusted_gross_income == 50000
         assert result.eitc == 600
@@ -77,9 +92,15 @@ class TestComparisonResult:
     def test_creation(self):
         case = TaxCase(name="test")
         taxsim = TaxSimResult(
-            taxsim_id=1, year=2023, state=0,
-            fiitax=5000, siitax=0, fica=3825,
-            frate=0.22, srate=0, ficar=0.0765,
+            taxsim_id=1,
+            year=2023,
+            state=0,
+            fiitax=5000,
+            siitax=0,
+            fica=3825,
+            frate=0.22,
+            srate=0,
+            ficar=0.0765,
         )
         pe = PolicyEngineResult(income_tax=5000, eitc=600)
         result = ComparisonResult(case=case, taxsim=taxsim, policyengine=pe)
@@ -88,8 +109,7 @@ class TestComparisonResult:
 
     def test_with_errors(self):
         case = TaxCase(name="test")
-        result = ComparisonResult(case=case, taxsim=None, policyengine=None,
-                                  errors=["TAXSIM failed"])
+        result = ComparisonResult(case=case, taxsim=None, policyengine=None, errors=["TAXSIM failed"])
         assert len(result.errors) == 1
 
 
@@ -147,10 +167,17 @@ class TestComputeComparisonStats:
     def test_with_results(self):
         case = TaxCase(name="test")
         taxsim = TaxSimResult(
-            taxsim_id=1, year=2023, state=0,
-            fiitax=5000, siitax=0, fica=3825,
-            frate=0.22, srate=0, ficar=0.0765,
-            v25_eitc=600, v22_ctc=2000,
+            taxsim_id=1,
+            year=2023,
+            state=0,
+            fiitax=5000,
+            siitax=0,
+            fica=3825,
+            frate=0.22,
+            srate=0,
+            ficar=0.0765,
+            v25_eitc=600,
+            v22_ctc=2000,
         )
         pe = PolicyEngineResult(income_tax=5000, eitc=600, ctc=2000)
         results = [ComparisonResult(case=case, taxsim=taxsim, policyengine=pe)]
@@ -159,8 +186,7 @@ class TestComputeComparisonStats:
 
     def test_with_errors(self):
         case = TaxCase(name="test")
-        results = [ComparisonResult(case=case, taxsim=None, policyengine=None,
-                                    errors=["failed"])]
+        results = [ComparisonResult(case=case, taxsim=None, policyengine=None, errors=["failed"])]
         stats = compute_comparison_stats(results)
         assert isinstance(stats, dict)
 
@@ -170,9 +196,15 @@ class TestComputeComparisonStats:
         for i in range(5):
             case = TaxCase(name=f"test_{i}", pwages=(i + 1) * 20000)
             taxsim = TaxSimResult(
-                taxsim_id=i + 1, year=2023, state=0,
-                fiitax=1000.0 * (i + 1), siitax=0, fica=500.0 * (i + 1),
-                frate=0.22, srate=0, ficar=0.0765,
+                taxsim_id=i + 1,
+                year=2023,
+                state=0,
+                fiitax=1000.0 * (i + 1),
+                siitax=0,
+                fica=500.0 * (i + 1),
+                frate=0.22,
+                srate=0,
+                ficar=0.0765,
                 v10_agi=20000.0 * (i + 1),
                 v18_taxable_income=15000.0 * (i + 1),
                 v25_eitc=max(0, 600 - i * 200),
@@ -207,11 +239,20 @@ class TestComputeComparisonStats:
         """Test AMT branch in stats."""
         case = TaxCase(name="high_income", pwages=500000)
         taxsim = TaxSimResult(
-            taxsim_id=1, year=2023, state=0,
-            fiitax=100000, siitax=0, fica=20000,
-            frate=0.37, srate=0, ficar=0.0145,
-            v10_agi=500000, v18_taxable_income=400000,
-            v25_eitc=0, v22_ctc=0, v23_ctc_refundable=0,
+            taxsim_id=1,
+            year=2023,
+            state=0,
+            fiitax=100000,
+            siitax=0,
+            fica=20000,
+            frate=0.37,
+            srate=0,
+            ficar=0.0145,
+            v10_agi=500000,
+            v18_taxable_income=400000,
+            v25_eitc=0,
+            v22_ctc=0,
+            v23_ctc_refundable=0,
             v26_amt=5000,  # AMT > 0 triggers amti tracking
         )
         pe = PolicyEngineResult(
@@ -242,9 +283,11 @@ class TestQueryTaxsim:
             "50000,0,0,0,0,0,14600,0,35400,5000,0,0,600,0,5000,3825"
         )
 
-        with patch("subprocess.run", return_value=mock_result), \
-             patch("tempfile.NamedTemporaryFile"), \
-             patch("pathlib.Path.unlink"):
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch("tempfile.NamedTemporaryFile"),
+            patch("pathlib.Path.unlink"),
+        ):
             results = query_taxsim("csv_data", max_retries=1)
             assert len(results) == 1
             assert results[0].fiitax == 5000
@@ -255,9 +298,11 @@ class TestQueryTaxsim:
         mock_result.returncode = 1
         mock_result.stderr = "connection refused"
 
-        with patch("subprocess.run", return_value=mock_result), \
-             patch("tempfile.NamedTemporaryFile"), \
-             patch("pathlib.Path.unlink"):
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch("tempfile.NamedTemporaryFile"),
+            patch("pathlib.Path.unlink"),
+        ):
             results = query_taxsim("csv_data", max_retries=1)
             assert results == []
 
@@ -266,9 +311,11 @@ class TestQueryTaxsim:
         mock_result.returncode = 0
         mock_result.stdout = ""
 
-        with patch("subprocess.run", return_value=mock_result), \
-             patch("tempfile.NamedTemporaryFile"), \
-             patch("pathlib.Path.unlink"):
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch("tempfile.NamedTemporaryFile"),
+            patch("pathlib.Path.unlink"),
+        ):
             results = query_taxsim("csv_data", max_retries=1)
             assert results == []
 
@@ -277,26 +324,33 @@ class TestQueryTaxsim:
         mock_result.returncode = 0
         mock_result.stdout = "<html><body>Error page</body></html>"
 
-        with patch("subprocess.run", return_value=mock_result), \
-             patch("tempfile.NamedTemporaryFile"), \
-             patch("pathlib.Path.unlink"):
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch("tempfile.NamedTemporaryFile"),
+            patch("pathlib.Path.unlink"),
+        ):
             results = query_taxsim("csv_data", max_retries=1)
             assert results == []
 
     def test_timeout(self):
         import subprocess
-        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("curl", 120)), \
-             patch("tempfile.NamedTemporaryFile"), \
-             patch("pathlib.Path.unlink"), \
-             patch("time.sleep"):
+
+        with (
+            patch("subprocess.run", side_effect=subprocess.TimeoutExpired("curl", 120)),
+            patch("tempfile.NamedTemporaryFile"),
+            patch("pathlib.Path.unlink"),
+            patch("time.sleep"),
+        ):
             results = query_taxsim("csv_data", max_retries=2)
             assert results == []
 
     def test_exception(self):
-        with patch("subprocess.run", side_effect=Exception("network error")), \
-             patch("tempfile.NamedTemporaryFile"), \
-             patch("pathlib.Path.unlink"), \
-             patch("time.sleep"):
+        with (
+            patch("subprocess.run", side_effect=Exception("network error")),
+            patch("tempfile.NamedTemporaryFile"),
+            patch("pathlib.Path.unlink"),
+            patch("time.sleep"),
+        ):
             results = query_taxsim("csv_data", max_retries=2)
             assert results == []
 
@@ -312,9 +366,11 @@ class TestQueryTaxsim:
             "bad,bad,bad,bad,bad,bad,bad,bad,bad,bad,bad,bad,bad,bad,bad,bad"
         )
 
-        with patch("subprocess.run", return_value=mock_result), \
-             patch("tempfile.NamedTemporaryFile"), \
-             patch("pathlib.Path.unlink"):
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch("tempfile.NamedTemporaryFile"),
+            patch("pathlib.Path.unlink"),
+        ):
             results = query_taxsim("csv_data", max_retries=1)
             # Bad rows should be skipped, returning empty results
             assert results == []
@@ -323,6 +379,7 @@ class TestQueryTaxsim:
 class TestRunPolicyengine:
     def test_success(self):
         import sys
+
         mock_pe = MagicMock()
         mock_sim = MagicMock()
         mock_pe.Simulation.return_value = mock_sim
@@ -336,6 +393,7 @@ class TestRunPolicyengine:
 
     def test_import_error(self):
         import sys
+
         # Remove policyengine_us from modules
         saved = sys.modules.get("policyengine_us")
         try:
@@ -353,14 +411,19 @@ class TestRunPolicyengine:
 
     def test_with_spouse(self):
         import sys
+
         mock_pe = MagicMock()
         mock_sim = MagicMock()
         mock_pe.Simulation.return_value = mock_sim
         mock_sim.calculate.return_value = np.array([500.0])
 
         case = TaxCase(
-            name="joint", mstat=2, pwages=50000,
-            sage=38, swages=30000, ssemp=5000,
+            name="joint",
+            mstat=2,
+            pwages=50000,
+            sage=38,
+            swages=30000,
+            ssemp=5000,
         )
 
         with patch.dict(sys.modules, {"policyengine_us": mock_pe}):
@@ -369,14 +432,19 @@ class TestRunPolicyengine:
 
     def test_with_children(self):
         import sys
+
         mock_pe = MagicMock()
         mock_sim = MagicMock()
         mock_pe.Simulation.return_value = mock_sim
         mock_sim.calculate.return_value = np.array([500.0])
 
         case = TaxCase(
-            name="hoh", mstat=3, pwages=30000,
-            depx=2, age1=8, age2=10,
+            name="hoh",
+            mstat=3,
+            pwages=30000,
+            depx=2,
+            age1=8,
+            age2=10,
         )
 
         with patch.dict(sys.modules, {"policyengine_us": mock_pe}):
@@ -385,14 +453,18 @@ class TestRunPolicyengine:
 
     def test_with_itemized_deductions(self):
         import sys
+
         mock_pe = MagicMock()
         mock_sim = MagicMock()
         mock_pe.Simulation.return_value = mock_sim
         mock_sim.calculate.return_value = np.array([500.0])
 
         case = TaxCase(
-            name="itemized", pwages=200000,
-            proptax=15000, mortgage=20000, otheritem=5000,
+            name="itemized",
+            pwages=200000,
+            proptax=15000,
+            mortgage=20000,
+            otheritem=5000,
         )
 
         with patch.dict(sys.modules, {"policyengine_us": mock_pe}):
@@ -401,6 +473,7 @@ class TestRunPolicyengine:
 
     def test_exception_returns_default(self):
         import sys
+
         mock_pe = MagicMock()
         mock_pe.Simulation.side_effect = Exception("simulation failed")
 
@@ -414,6 +487,7 @@ class TestRunPolicyengine:
     def test_amt_exception(self):
         """Test that AMT exception is caught gracefully."""
         import sys
+
         mock_pe = MagicMock()
         mock_sim = MagicMock()
         mock_pe.Simulation.return_value = mock_sim
@@ -438,6 +512,7 @@ class TestRunPolicyengine:
 class TestRunComparisons:
     def test_run_comparisons(self):
         import sys
+
         cases = [
             TaxCase(name="test1", pwages=30000),
             TaxCase(name="test2", pwages=50000),
@@ -446,9 +521,15 @@ class TestRunComparisons:
         # Mock TAXSIM results
         ts_results = [
             TaxSimResult(
-                taxsim_id=i + 1, year=2023, state=0,
-                fiitax=1000 * (i + 1), siitax=0, fica=500 * (i + 1),
-                frate=0.22, srate=0, ficar=0.0765,
+                taxsim_id=i + 1,
+                year=2023,
+                state=0,
+                fiitax=1000 * (i + 1),
+                siitax=0,
+                fica=500 * (i + 1),
+                frate=0.22,
+                srate=0,
+                ficar=0.0765,
                 v25_eitc=600 - i * 200,
             )
             for i in range(2)
@@ -459,10 +540,13 @@ class TestRunComparisons:
         mock_pe.Simulation.return_value = mock_sim
         mock_sim.calculate.return_value = np.array([500.0])
 
-        with patch(
-            "cosilico_validators.comparison.taxsim_comparison.query_taxsim",
-            return_value=ts_results,
-        ), patch.dict(sys.modules, {"policyengine_us": mock_pe}):
+        with (
+            patch(
+                "cosilico_validators.comparison.taxsim_comparison.query_taxsim",
+                return_value=ts_results,
+            ),
+            patch.dict(sys.modules, {"policyengine_us": mock_pe}),
+        ):
             comparisons = run_comparisons(cases)
             assert len(comparisons) == 2
             assert comparisons[0].taxsim is not None
@@ -470,6 +554,7 @@ class TestRunComparisons:
 
     def test_missing_taxsim_results(self):
         import sys
+
         cases = [TaxCase(name="test1", pwages=30000)]
 
         mock_pe = MagicMock()
@@ -477,10 +562,13 @@ class TestRunComparisons:
         mock_pe.Simulation.return_value = mock_sim
         mock_sim.calculate.return_value = np.array([500.0])
 
-        with patch(
-            "cosilico_validators.comparison.taxsim_comparison.query_taxsim",
-            return_value=[],  # No TAXSIM results
-        ), patch.dict(sys.modules, {"policyengine_us": mock_pe}):
+        with (
+            patch(
+                "cosilico_validators.comparison.taxsim_comparison.query_taxsim",
+                return_value=[],  # No TAXSIM results
+            ),
+            patch.dict(sys.modules, {"policyengine_us": mock_pe}),
+        ):
             comparisons = run_comparisons(cases)
             assert len(comparisons) == 1
             assert comparisons[0].taxsim is None
@@ -491,12 +579,22 @@ class TestGenerateDashboard:
     def test_generate_dashboard(self):
         case = TaxCase(name="test", pwages=50000)
         taxsim = TaxSimResult(
-            taxsim_id=1, year=2023, state=0,
-            fiitax=5000, siitax=0, fica=3825,
-            frate=0.22, srate=0, ficar=0.0765,
-            v10_agi=50000, v18_taxable_income=35400,
-            v25_eitc=0, v22_ctc=0, v23_ctc_refundable=0,
-            v26_amt=0, v27_fed_tax_before_credits=5000,
+            taxsim_id=1,
+            year=2023,
+            state=0,
+            fiitax=5000,
+            siitax=0,
+            fica=3825,
+            frate=0.22,
+            srate=0,
+            ficar=0.0765,
+            v10_agi=50000,
+            v18_taxable_income=35400,
+            v25_eitc=0,
+            v22_ctc=0,
+            v23_ctc_refundable=0,
+            v26_amt=0,
+            v27_fed_tax_before_credits=5000,
         )
         pe = PolicyEngineResult(
             adjusted_gross_income=50000,
@@ -531,10 +629,18 @@ class TestGenerateDashboard:
         """Dashboard has EITC-specific section."""
         case = TaxCase(name="eitc_test", pwages=20000, mstat=3, depx=1, age1=8)
         taxsim = TaxSimResult(
-            taxsim_id=1, year=2023, state=0,
-            fiitax=0, siitax=0, fica=1530,
-            frate=0.1, srate=0, ficar=0.0765,
-            v25_eitc=3000, v22_ctc=2000, v23_ctc_refundable=500,
+            taxsim_id=1,
+            year=2023,
+            state=0,
+            fiitax=0,
+            siitax=0,
+            fica=1530,
+            frate=0.1,
+            srate=0,
+            ficar=0.0765,
+            v25_eitc=3000,
+            v22_ctc=2000,
+            v23_ctc_refundable=500,
         )
         pe = PolicyEngineResult(eitc=3100, ctc=2100)
         comparisons = [ComparisonResult(case=case, taxsim=taxsim, policyengine=pe)]
@@ -551,9 +657,15 @@ class TestGenerateDashboard:
         for i in range(5):
             case = TaxCase(name=f"case_{i}", pwages=(i + 1) * 30000)
             taxsim = TaxSimResult(
-                taxsim_id=i + 1, year=2023, state=0,
-                fiitax=1000 * (i + 1), siitax=0, fica=500 * (i + 1),
-                frate=0.22, srate=0, ficar=0.0765,
+                taxsim_id=i + 1,
+                year=2023,
+                state=0,
+                fiitax=1000 * (i + 1),
+                siitax=0,
+                fica=500 * (i + 1),
+                frate=0.22,
+                srate=0,
+                ficar=0.0765,
                 v10_agi=30000 * (i + 1),
             )
             pe = PolicyEngineResult(
@@ -572,6 +684,7 @@ class TestMainFunction:
     def test_main(self, tmp_path):
         """main() generates test cases, runs comparisons, writes output."""
         import sys
+
         mock_pe = MagicMock()
         mock_sim = MagicMock()
         mock_pe.Simulation.return_value = mock_sim
@@ -580,35 +693,53 @@ class TestMainFunction:
         # Return enough TAXSIM results to cover the summary print loop (line 996)
         ts_results = []
         for i in range(len(generate_test_cases())):
-            ts_results.append(TaxSimResult(
-                taxsim_id=i + 1, year=2023, state=0,
-                fiitax=5000.0, siitax=0, fica=3825,
-                frate=0.22, srate=0, ficar=0.0765,
-                v10_agi=50000, v18_taxable_income=35400,
-                v25_eitc=600, v22_ctc=2000, v23_ctc_refundable=500,
-                v26_amt=0,
-            ))
+            ts_results.append(
+                TaxSimResult(
+                    taxsim_id=i + 1,
+                    year=2023,
+                    state=0,
+                    fiitax=5000.0,
+                    siitax=0,
+                    fica=3825,
+                    frate=0.22,
+                    srate=0,
+                    ficar=0.0765,
+                    v10_agi=50000,
+                    v18_taxable_income=35400,
+                    v25_eitc=600,
+                    v22_ctc=2000,
+                    v23_ctc_refundable=500,
+                    v26_amt=0,
+                )
+            )
 
-        with patch(
-            "cosilico_validators.comparison.taxsim_comparison.query_taxsim",
-            return_value=ts_results,
-        ), patch.dict(sys.modules, {"policyengine_us": mock_pe}), \
-             patch("pathlib.Path.write_text"), \
-             patch("pathlib.Path.mkdir"):
+        with (
+            patch(
+                "cosilico_validators.comparison.taxsim_comparison.query_taxsim",
+                return_value=ts_results,
+            ),
+            patch.dict(sys.modules, {"policyengine_us": mock_pe}),
+            patch("pathlib.Path.write_text"),
+            patch("pathlib.Path.mkdir"),
+        ):
             main()
 
     def test_main_empty_taxsim(self, tmp_path):
         """main() with empty TAXSIM results."""
         import sys
+
         mock_pe = MagicMock()
         mock_sim = MagicMock()
         mock_pe.Simulation.return_value = mock_sim
         mock_sim.calculate.return_value = np.array([500.0])
 
-        with patch(
-            "cosilico_validators.comparison.taxsim_comparison.query_taxsim",
-            return_value=[],
-        ), patch.dict(sys.modules, {"policyengine_us": mock_pe}), \
-             patch("pathlib.Path.write_text"), \
-             patch("pathlib.Path.mkdir"):
+        with (
+            patch(
+                "cosilico_validators.comparison.taxsim_comparison.query_taxsim",
+                return_value=[],
+            ),
+            patch.dict(sys.modules, {"policyengine_us": mock_pe}),
+            patch("pathlib.Path.write_text"),
+            patch("pathlib.Path.mkdir"),
+        ):
             main()

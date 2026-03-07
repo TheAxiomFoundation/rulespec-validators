@@ -56,10 +56,7 @@ def generate_scorecard(
             f"| Coverage | {result.coverage.implemented}/{result.coverage.total} | "
             f"{format_delta(delta.coverage_delta)} |"
         )
-        lines.append(
-            f"| Quality | {result.quality.overall_score:.0f}% | "
-            f"{format_delta(delta.quality_delta)} |"
-        )
+        lines.append(f"| Quality | {result.quality.overall_score:.0f}% | {format_delta(delta.quality_delta)} |")
         if result.review:
             lines.append(
                 f"| Review | {result.review.overall_score:.1f}/10 | "
@@ -109,8 +106,12 @@ def generate_scorecard(
     lines.append("### Quality Metrics")
     lines.append("")
     lines.append(f"- Test Coverage: {format_percentage(result.quality.test_coverage)}")
-    lines.append(f"- No Hardcoded Literals: {'PASS :white_check_mark:' if result.quality.no_literals_pass else 'FAIL :x:'}")
-    lines.append(f"- All Imports Valid: {'PASS :white_check_mark:' if result.quality.all_imports_valid else 'FAIL :x:'}")
+    lines.append(
+        f"- No Hardcoded Literals: {'PASS :white_check_mark:' if result.quality.no_literals_pass else 'FAIL :x:'}"
+    )
+    lines.append(
+        f"- All Imports Valid: {'PASS :white_check_mark:' if result.quality.all_imports_valid else 'FAIL :x:'}"
+    )
     lines.append(f"- All Dtypes Valid: {'PASS :white_check_mark:' if result.quality.all_dtypes_valid else 'FAIL :x:'}")
     lines.append("")
 

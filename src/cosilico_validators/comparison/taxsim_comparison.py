@@ -399,9 +399,7 @@ def query_taxsim(csv_data: str, max_retries: int = 3) -> List[TaxSimResult]:
     for attempt in range(max_retries):
         try:
             # Write CSV to temp file
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".csv", delete=False
-            ) as f:
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
                 f.write(csv_data)
                 temp_path = f.name
 
@@ -487,12 +485,12 @@ def query_taxsim(csv_data: str, max_retries: int = 3) -> List[TaxSimResult]:
         except subprocess.TimeoutExpired:
             print(f"TAXSIM request timeout (attempt {attempt + 1})")
             if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)
+                time.sleep(2**attempt)
             continue
         except Exception as e:
             print(f"TAXSIM API error (attempt {attempt + 1}): {e}")
             if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)
+                time.sleep(2**attempt)
             continue
 
     return []
@@ -583,33 +581,21 @@ def run_policyengine(case: TaxCase) -> PolicyEngineResult:
         sim = Simulation(situation=situation)
 
         result = PolicyEngineResult(
-            adjusted_gross_income=float(
-                sim.calculate("adjusted_gross_income", case.year)[0]
-            ),
+            adjusted_gross_income=float(sim.calculate("adjusted_gross_income", case.year)[0]),
             taxable_income=float(sim.calculate("taxable_income", case.year)[0]),
-            income_tax_before_credits=float(
-                sim.calculate("income_tax_before_credits", case.year)[0]
-            ),
+            income_tax_before_credits=float(sim.calculate("income_tax_before_credits", case.year)[0]),
             income_tax=float(sim.calculate("income_tax", case.year)[0]),
             eitc=float(sim.calculate("eitc", case.year)[0]),
             ctc=float(sim.calculate("ctc", case.year)[0]),
             refundable_ctc=float(sim.calculate("refundable_ctc", case.year)[0]),
-            employee_social_security_tax=float(
-                sim.calculate("employee_social_security_tax", case.year)[0]
-            ),
-            self_employment_tax=float(
-                sim.calculate("self_employment_tax", case.year)[0]
-            ),
+            employee_social_security_tax=float(sim.calculate("employee_social_security_tax", case.year)[0]),
+            self_employment_tax=float(sim.calculate("self_employment_tax", case.year)[0]),
         )
 
         # Try to get AMT variables (may not exist in all PE versions)
         try:
-            result.amt_income = float(
-                sim.calculate("alternative_minimum_taxable_income", case.year)[0]
-            )
-            result.amt = float(
-                sim.calculate("alternative_minimum_tax", case.year)[0]
-            )
+            result.amt_income = float(sim.calculate("alternative_minimum_taxable_income", case.year)[0])
+            result.amt = float(sim.calculate("alternative_minimum_tax", case.year)[0])
         except Exception:
             # AMT variables may not be implemented in PolicyEngine-US yet
             pass
@@ -679,23 +665,17 @@ def compute_comparison_stats(comparisons: List[ComparisonResult]) -> Dict:
         # AGI comparison
         stats["agi"]["pe"].append(c.policyengine.adjusted_gross_income)
         stats["agi"]["ts"].append(c.taxsim.v10_agi)
-        stats["agi"]["diffs"].append(
-            c.policyengine.adjusted_gross_income - c.taxsim.v10_agi
-        )
+        stats["agi"]["diffs"].append(c.policyengine.adjusted_gross_income - c.taxsim.v10_agi)
 
         # Taxable income
         stats["taxable_income"]["pe"].append(c.policyengine.taxable_income)
         stats["taxable_income"]["ts"].append(c.taxsim.v18_taxable_income)
-        stats["taxable_income"]["diffs"].append(
-            c.policyengine.taxable_income - c.taxsim.v18_taxable_income
-        )
+        stats["taxable_income"]["diffs"].append(c.policyengine.taxable_income - c.taxsim.v18_taxable_income)
 
         # Federal tax
         stats["federal_tax"]["pe"].append(c.policyengine.income_tax)
         stats["federal_tax"]["ts"].append(c.taxsim.fiitax)
-        stats["federal_tax"]["diffs"].append(
-            c.policyengine.income_tax - c.taxsim.fiitax
-        )
+        stats["federal_tax"]["diffs"].append(c.policyengine.income_tax - c.taxsim.fiitax)
 
         # EITC
         stats["eitc"]["pe"].append(c.policyengine.eitc)
@@ -705,15 +685,10 @@ def compute_comparison_stats(comparisons: List[ComparisonResult]) -> Dict:
         # CTC
         stats["ctc"]["pe"].append(c.policyengine.ctc)
         stats["ctc"]["ts"].append(c.taxsim.v22_ctc + c.taxsim.v23_ctc_refundable)
-        stats["ctc"]["diffs"].append(
-            c.policyengine.ctc - (c.taxsim.v22_ctc + c.taxsim.v23_ctc_refundable)
-        )
+        stats["ctc"]["diffs"].append(c.policyengine.ctc - (c.taxsim.v22_ctc + c.taxsim.v23_ctc_refundable))
 
         # FICA
-        pe_fica = (
-            c.policyengine.employee_social_security_tax
-            + c.policyengine.self_employment_tax
-        )
+        pe_fica = c.policyengine.employee_social_security_tax + c.policyengine.self_employment_tax
         stats["fica"]["pe"].append(pe_fica)
         stats["fica"]["ts"].append(c.taxsim.fica)
         stats["fica"]["diffs"].append(pe_fica - c.taxsim.fica)
@@ -722,9 +697,7 @@ def compute_comparison_stats(comparisons: List[ComparisonResult]) -> Dict:
         if c.policyengine.amt_income > 0 or c.taxsim.v26_amt > 0:
             stats["amti"]["pe"].append(c.policyengine.amt_income)
             stats["amti"]["ts"].append(c.taxsim.v26_amt)
-            stats["amti"]["diffs"].append(
-                c.policyengine.amt_income - c.taxsim.v26_amt
-            )
+            stats["amti"]["diffs"].append(c.policyengine.amt_income - c.taxsim.v26_amt)
 
     # Compute summary stats for each variable
     summary = {}
@@ -746,9 +719,7 @@ def compute_comparison_stats(comparisons: List[ComparisonResult]) -> Dict:
             "max_abs_diff": float(np.max(np.abs(diffs))),
             "pe_mean": float(np.mean(pe_vals)),
             "ts_mean": float(np.mean(ts_vals)),
-            "correlation": float(np.corrcoef(pe_vals, ts_vals)[0, 1])
-            if len(pe_vals) > 1
-            else 0.0,
+            "correlation": float(np.corrcoef(pe_vals, ts_vals)[0, 1]) if len(pe_vals) > 1 else 0.0,
             "pct_exact": float(np.mean(np.abs(diffs) < 1) * 100),
             "pct_within_10": float(np.mean(np.abs(diffs) < 10) * 100),
             "pct_within_100": float(np.mean(np.abs(diffs) < 100) * 100),
@@ -757,9 +728,7 @@ def compute_comparison_stats(comparisons: List[ComparisonResult]) -> Dict:
     return summary
 
 
-def generate_dashboard(
-    comparisons: List[ComparisonResult], stats: Dict, cases: List[TaxCase]
-) -> str:
+def generate_dashboard(comparisons: List[ComparisonResult], stats: Dict, cases: List[TaxCase]) -> str:
     """Generate markdown dashboard."""
     lines = [
         "# TAXSIM Validation Dashboard",
@@ -867,9 +836,7 @@ def generate_dashboard(
     eitc_cases = [
         c
         for c in comparisons
-        if c.taxsim is not None
-        and c.policyengine is not None
-        and (c.taxsim.v25_eitc > 0 or c.policyengine.eitc > 0)
+        if c.taxsim is not None and c.policyengine is not None and (c.taxsim.v25_eitc > 0 or c.policyengine.eitc > 0)
     ]
     eitc_cases_sorted = sorted(
         eitc_cases,
@@ -905,9 +872,7 @@ def generate_dashboard(
     ]
     ctc_cases_sorted = sorted(
         ctc_cases,
-        key=lambda c: abs(
-            c.policyengine.ctc - (c.taxsim.v22_ctc + c.taxsim.v23_ctc_refundable)
-        ),
+        key=lambda c: abs(c.policyengine.ctc - (c.taxsim.v22_ctc + c.taxsim.v23_ctc_refundable)),
         reverse=True,
     )
 

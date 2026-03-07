@@ -48,9 +48,7 @@ class BaseValidator(ABC):
     supported_variables: set[str]
 
     @abstractmethod
-    def validate(
-        self, test_case: TestCase, variable: str, year: int = 2024
-    ) -> ValidatorResult:
+    def validate(self, test_case: TestCase, variable: str, year: int = 2024) -> ValidatorResult:
         """Run a test case and return the calculated value.
 
         Args:
@@ -68,9 +66,7 @@ class BaseValidator(ABC):
         """Check if this validator supports a given variable."""
         pass  # pragma: no cover
 
-    def batch_validate(
-        self, test_cases: list[TestCase], variable: str, year: int = 2024
-    ) -> list[ValidatorResult]:
+    def batch_validate(self, test_cases: list[TestCase], variable: str, year: int = 2024) -> list[ValidatorResult]:
         """Validate multiple test cases.
 
         Default implementation calls validate() sequentially.

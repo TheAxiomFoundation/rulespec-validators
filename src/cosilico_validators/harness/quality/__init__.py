@@ -5,6 +5,7 @@ from typing import Optional
 
 from .. import QualityIssue, QualityResult
 from .coverage import check_test_coverage
+from .grounding import check_grounding
 from .imports import check_imports
 from .schema import check_schema
 
@@ -12,6 +13,8 @@ from .schema import check_schema
 def run_quality_checks(
     statute_root: Path,
     changed_files: Optional[list[Path]] = None,
+    rule_text: Optional[str] = None,
+    rule_text_by_file: Optional[dict[str, str]] = None,
 ) -> QualityResult:
     """Run all quality checks on .rac files.
 
@@ -34,6 +37,7 @@ def run_quality_checks(
             no_literals_pass=True,
             all_imports_valid=True,
             all_dtypes_valid=True,
+            all_grounded=True,
             issues=[],
         )
 
@@ -51,13 +55,26 @@ def run_quality_checks(
     import_issues, all_imports_valid = check_imports(rac_files, statute_root)
     all_issues.extend(import_issues)
 
+    # Source grounding
+    grounding_issues, all_grounded = check_grounding(
+        rac_files, rule_text=rule_text, rule_text_by_file=rule_text_by_file
+    )
+    all_issues.extend(grounding_issues)
+
     return QualityResult(
         test_coverage=coverage_rate,
         no_literals_pass=no_literals_pass,
         all_imports_valid=all_imports_valid,
         all_dtypes_valid=all_dtypes_valid,
+        all_grounded=all_grounded,
         issues=all_issues,
     )
 
 
-__all__ = ["run_quality_checks", "check_schema", "check_test_coverage", "check_imports"]
+__all__ = [
+    "run_quality_checks",
+    "check_schema",
+    "check_test_coverage",
+    "check_imports",
+    "check_grounding",
+]

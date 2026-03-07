@@ -14,8 +14,7 @@ from cosilico_validators.validators.taxcalc import (
 class TestGetTcModule:
     def test_import_error(self):
         v = TaxCalculatorValidator()
-        with patch.dict("sys.modules", {"taxcalc": None}), \
-             pytest.raises(ImportError, match="taxcalc not installed"):
+        with patch.dict("sys.modules", {"taxcalc": None}), pytest.raises(ImportError, match="taxcalc not installed"):
             v._get_tc_module()
 
     def test_cached(self):
@@ -42,11 +41,15 @@ class TestBuildInputDataframe:
 
     def test_spouse_wages(self):
         v = TaxCalculatorValidator()
-        tc = TestCase(name="test", inputs={
-            "earned_income": 50000,
-            "spouse_wages": 30000,
-            "filing_status": "JOINT",
-        }, expected={})
+        tc = TestCase(
+            name="test",
+            inputs={
+                "earned_income": 50000,
+                "spouse_wages": 30000,
+                "filing_status": "JOINT",
+            },
+            expected={},
+        )
         df = v._build_input_dataframe(tc, 2024)
         assert df["e00200s"].iloc[0] == 30000
         assert df["e00200"].iloc[0] == 80000
@@ -115,17 +118,13 @@ class TestBuildInputDataframe:
 
     def test_spouse_age_with_joint(self):
         v = TaxCalculatorValidator()
-        tc = TestCase(name="test", inputs={
-            "filing_status": "JOINT", "age": 35
-        }, expected={})
+        tc = TestCase(name="test", inputs={"filing_status": "JOINT", "age": 35}, expected={})
         df = v._build_input_dataframe(tc, 2024)
         assert df["age_spouse"].iloc[0] == 35
 
     def test_spouse_age_explicit(self):
         v = TaxCalculatorValidator()
-        tc = TestCase(name="test", inputs={
-            "filing_status": "JOINT", "age": 35, "spouse_age": 32
-        }, expected={})
+        tc = TestCase(name="test", inputs={"filing_status": "JOINT", "age": 35, "spouse_age": 32}, expected={})
         df = v._build_input_dataframe(tc, 2024)
         assert df["age_spouse"].iloc[0] == 32
 
@@ -187,13 +186,15 @@ class TestGetAllOutputs:
         mock_tc = MagicMock()
         mock_calc = MagicMock()
         mock_tc.Calculator.return_value = mock_calc
-        result_df = pd.DataFrame({
-            "eitc": [500.0],
-            "iitax": [3000.0],
-            "c00100": [50000.0],
-            "standard": [14600.0],
-            "c04800": [35400.0],
-        })
+        result_df = pd.DataFrame(
+            {
+                "eitc": [500.0],
+                "iitax": [3000.0],
+                "c00100": [50000.0],
+                "standard": [14600.0],
+                "c04800": [35400.0],
+            }
+        )
         mock_calc.dataframe.return_value = result_df
         v._tc_module = mock_tc
 

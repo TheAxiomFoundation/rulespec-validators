@@ -19,8 +19,10 @@ class TestPolicyEngineValidatorInit:
 
     def test_get_simulation_class_import_error(self):
         v = PolicyEngineValidator()
-        with patch.dict("sys.modules", {"policyengine_us": None}), \
-             pytest.raises(ImportError, match="policyengine-us not installed"):
+        with (
+            patch.dict("sys.modules", {"policyengine_us": None}),
+            pytest.raises(ImportError, match="policyengine-us not installed"),
+        ):
             v._get_simulation_class()
 
     def test_get_simulation_class_success(self):

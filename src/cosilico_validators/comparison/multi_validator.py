@@ -205,9 +205,7 @@ def compare_microdata(
             if name == "taxsim":
                 if taxsim_mode == "local":
                     exe_path = get_taxsim_executable_path()
-                    validator_instances[name] = TaxsimValidator(
-                        mode="local", taxsim_path=exe_path
-                    )
+                    validator_instances[name] = TaxsimValidator(mode="local", taxsim_path=exe_path)
                 else:
                     validator_instances[name] = TaxsimValidator(mode="web")
             elif name == "taxcalc":
@@ -221,9 +219,7 @@ def compare_microdata(
     test_cases = [input_builder(i) for i in range(n)]
 
     # Collect results per validator
-    validator_values: dict[str, list[float | None]] = {
-        name: [] for name in validator_instances
-    }
+    validator_values: dict[str, list[float | None]] = {name: [] for name in validator_instances}
 
     print(f"Running {len(validator_instances)} validators on {n} records...")
 
@@ -234,16 +230,12 @@ def compare_microdata(
         if hasattr(validator, "batch_validate"):
             results = validator.batch_validate(test_cases, variable, year)
             for r in results:
-                validator_values[name].append(
-                    r.calculated_value if r.success else None
-                )
+                validator_values[name].append(r.calculated_value if r.success else None)
         else:
             # Fall back to single validation
             for tc in test_cases:
                 result = validator.validate(tc, variable, year)
-                validator_values[name].append(
-                    result.calculated_value if result.success else None
-                )
+                validator_values[name].append(result.calculated_value if result.success else None)
 
         # Count successful results
         success_count = sum(1 for v in validator_values[name] if v is not None)
@@ -256,9 +248,7 @@ def compare_microdata(
 
     for name, values in validator_values.items():
         # Convert to array, handling None
-        val_array = np.array(
-            [v if v is not None else np.nan for v in values], dtype=float
-        )
+        val_array = np.array([v if v is not None else np.nan for v in values], dtype=float)
 
         # Only compare where we have both values
         valid_mask = ~np.isnan(val_array)

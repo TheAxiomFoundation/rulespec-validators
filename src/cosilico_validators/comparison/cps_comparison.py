@@ -20,21 +20,23 @@ def get_pe_values(year: int = 2024) -> pd.DataFrame:
     # Tax unit level variables
     tu_id = np.array(sim.calculate("tax_unit_id", year))
 
-    results = pd.DataFrame({
-        'tax_unit_id': tu_id,
-        'pe_eitc': np.array(sim.calculate("eitc", year)),
-        'pe_ctc_nonref': np.array(sim.calculate("non_refundable_ctc", year)),
-        'pe_ctc_ref': np.array(sim.calculate("refundable_ctc", year)),
-        'pe_income_tax': np.array(sim.calculate("income_tax_before_credits", year)),
-        'pe_se_tax': np.array(sim.calculate("self_employment_tax", year)),
-        'pe_niit': np.array(sim.calculate("net_investment_income_tax", year)),
-        # Get key inputs for comparison
-        'pe_agi': np.array(sim.calculate("adjusted_gross_income", year)),
-        'pe_taxable_income': np.array(sim.calculate("taxable_income", year)),
-        'pe_earned_income': np.array(sim.calculate("tax_unit_earned_income", year)),
-    })
+    results = pd.DataFrame(
+        {
+            "tax_unit_id": tu_id,
+            "pe_eitc": np.array(sim.calculate("eitc", year)),
+            "pe_ctc_nonref": np.array(sim.calculate("non_refundable_ctc", year)),
+            "pe_ctc_ref": np.array(sim.calculate("refundable_ctc", year)),
+            "pe_income_tax": np.array(sim.calculate("income_tax_before_credits", year)),
+            "pe_se_tax": np.array(sim.calculate("self_employment_tax", year)),
+            "pe_niit": np.array(sim.calculate("net_investment_income_tax", year)),
+            # Get key inputs for comparison
+            "pe_agi": np.array(sim.calculate("adjusted_gross_income", year)),
+            "pe_taxable_income": np.array(sim.calculate("taxable_income", year)),
+            "pe_earned_income": np.array(sim.calculate("tax_unit_earned_income", year)),
+        }
+    )
 
-    results['pe_ctc_total'] = results['pe_ctc_nonref'] + results['pe_ctc_ref']
+    results["pe_ctc_total"] = results["pe_ctc_nonref"] + results["pe_ctc_ref"]
 
     return results
 
@@ -43,20 +45,20 @@ def compare_calculations(cos_df: pd.DataFrame, pe_df: pd.DataFrame) -> dict:
     """Compare Cosilico vs PolicyEngine calculations."""
 
     # Merge on tax_unit_id
-    merged = cos_df.merge(pe_df, on='tax_unit_id', how='inner')
+    merged = cos_df.merge(pe_df, on="tax_unit_id", how="inner")
     print(f"Matched {len(merged):,} tax units")
 
     results = {}
 
     # Compare each variable
     comparisons = [
-        ('cos_eitc', 'pe_eitc', 'EITC'),
-        ('cos_ctc_total', 'pe_ctc_total', 'CTC Total'),
-        ('cos_se_tax', 'pe_se_tax', 'SE Tax'),
-        ('cos_income_tax', 'pe_income_tax', 'Income Tax'),
-        ('cos_niit', 'pe_niit', 'NIIT'),
-        ('adjusted_gross_income', 'pe_agi', 'AGI'),
-        ('taxable_income', 'pe_taxable_income', 'Taxable Income'),
+        ("cos_eitc", "pe_eitc", "EITC"),
+        ("cos_ctc_total", "pe_ctc_total", "CTC Total"),
+        ("cos_se_tax", "pe_se_tax", "SE Tax"),
+        ("cos_income_tax", "pe_income_tax", "Income Tax"),
+        ("cos_niit", "pe_niit", "NIIT"),
+        ("adjusted_gross_income", "pe_agi", "AGI"),
+        ("taxable_income", "pe_taxable_income", "Taxable Income"),
     ]
 
     print("\n=== Cosilico vs PolicyEngine Comparison ===\n")
@@ -85,14 +87,14 @@ def compare_calculations(cos_df: pd.DataFrame, pe_df: pd.DataFrame) -> dict:
         print(f"{label:<20} {match_rate:>9.1f}% ${mean_diff:>14,.0f} {corr:>10.4f}")
 
         results[label] = {
-            'match_rate': match_rate,
-            'mean_diff': mean_diff,
-            'correlation': corr,
+            "match_rate": match_rate,
+            "mean_diff": mean_diff,
+            "correlation": corr,
         }
 
     # Weighted totals comparison
     print("\n--- Weighted Totals ---")
-    weight = merged['weight'].values
+    weight = merged["weight"].values
 
     for cos_col, pe_col, label in comparisons[:5]:  # Just tax variables
         if cos_col not in merged.columns or pe_col not in merged.columns:
@@ -135,7 +137,7 @@ def main():
     print("=" * 60)
 
     # Overall assessment
-    avg_match = np.mean([r['match_rate'] for r in results.values() if not np.isnan(r.get('match_rate', np.nan))])
+    avg_match = np.mean([r["match_rate"] for r in results.values() if not np.isnan(r.get("match_rate", np.nan))])
     print(f"Average match rate: {avg_match:.1f}%")
 
     if avg_match >= 90:

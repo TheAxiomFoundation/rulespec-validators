@@ -90,8 +90,10 @@ class TestCPSComparison:
         """Should load PolicyEngine values for a variable across CPS."""
         from cosilico_validators.comparison import load_pe_values
 
-        with patch("cosilico_validators.comparison.core.HAS_POLICYENGINE", True), \
-             patch("cosilico_validators.comparison.core.Microsimulation") as mock_sim:
+        with (
+            patch("cosilico_validators.comparison.core.HAS_POLICYENGINE", True),
+            patch("cosilico_validators.comparison.core.Microsimulation") as mock_sim,
+        ):
             mock_instance = MagicMock()
             mock_sim.return_value = mock_instance
             mock_instance.calculate.return_value = np.array([100.0, 200.0, 300.0])
@@ -111,17 +113,25 @@ class TestCPSComparison:
         data_dir = tmp_path / "CosilicoAI" / "cosilico-data-sources" / "micro" / "us"
         data_dir.mkdir(parents=True)
 
-        mock_df = pd.DataFrame({
-            "cos_income_tax": [100.0, 200.0, 300.0],
-            "tax_unit_id": [1, 2, 3],
-        })
+        mock_df = pd.DataFrame(
+            {
+                "cos_income_tax": [100.0, 200.0, 300.0],
+                "tax_unit_id": [1, 2, 3],
+            }
+        )
 
-        with patch("pathlib.Path.home", return_value=tmp_path), \
-             patch.dict("sys.modules", {
-                "tax_unit_builder": MagicMock(),
-                "cosilico_runner": MagicMock(),
-             }):
+        with (
+            patch("pathlib.Path.home", return_value=tmp_path),
+            patch.dict(
+                "sys.modules",
+                {
+                    "tax_unit_builder": MagicMock(),
+                    "cosilico_runner": MagicMock(),
+                },
+            ),
+        ):
             import sys
+
             mock_builder = sys.modules["tax_unit_builder"]
             mock_runner = sys.modules["cosilico_runner"]
             mock_builder.load_and_build_tax_units.return_value = mock_df
@@ -137,8 +147,10 @@ class TestCPSComparison:
         """Should run full comparison for a single variable."""
         from cosilico_validators.comparison import run_variable_comparison
 
-        with patch("cosilico_validators.comparison.core.load_pe_values") as mock_pe, \
-             patch("cosilico_validators.comparison.core.load_cosilico_values") as mock_cos:
+        with (
+            patch("cosilico_validators.comparison.core.load_pe_values") as mock_pe,
+            patch("cosilico_validators.comparison.core.load_cosilico_values") as mock_cos,
+        ):
             # Return (values, ids) tuples since return_ids=True
             mock_pe.return_value = (np.array([100.0, 200.0, 300.0]), np.array([1, 2, 3]))
             mock_cos.return_value = (np.array([100.0, 200.0, 300.0]), np.array([1, 2, 3]))

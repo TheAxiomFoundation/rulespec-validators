@@ -60,12 +60,14 @@ def compare_records(
     worst_mismatches = []
     for idx in worst_indices:
         if abs_errors[idx] > tolerance:
-            worst_mismatches.append({
-                "index": int(idx),
-                "cosilico": float(cosilico_values[idx]),
-                "policyengine": float(pe_values[idx]),
-                "difference": float(abs_errors[idx]),
-            })
+            worst_mismatches.append(
+                {
+                    "index": int(idx),
+                    "cosilico": float(cosilico_values[idx]),
+                    "policyengine": float(pe_values[idx]),
+                    "difference": float(abs_errors[idx]),
+                }
+            )
 
     return {
         "n_records": n_records,
@@ -154,9 +156,7 @@ def load_cosilico_values(variable: str, year: int = 2024, return_ids: bool = Fal
 
     col = column_map.get(variable, f"cos_{variable}")
     if col not in df.columns:
-        raise ValueError(
-            f"Variable '{variable}' not found. Available: {list(column_map.keys())}"
-        )
+        raise ValueError(f"Variable '{variable}' not found. Available: {list(column_map.keys())}")
 
     values = np.array(df[col].values)
 
@@ -166,8 +166,7 @@ def load_cosilico_values(variable: str, year: int = 2024, return_ids: bool = Fal
     return values
 
 
-def align_records(cos_values: np.ndarray, cos_ids: np.ndarray,
-                   pe_values: np.ndarray, pe_ids: np.ndarray):
+def align_records(cos_values: np.ndarray, cos_ids: np.ndarray, pe_values: np.ndarray, pe_ids: np.ndarray):
     """Align records by tax_unit_id for comparison.
 
     Uses vectorized merge via sorted index lookup for performance.
@@ -222,9 +221,7 @@ def run_variable_comparison(
     cos_values, cos_ids = load_cosilico_values(variable, year, return_ids=True)
 
     # Align records
-    aligned_cos, aligned_pe, matched_ids = align_records(
-        cos_values, cos_ids, pe_values, pe_ids
-    )
+    aligned_cos, aligned_pe, matched_ids = align_records(cos_values, cos_ids, pe_values, pe_ids)
 
     result = compare_records(aligned_cos, aligned_pe, tolerance=tolerance)
     result["variable"] = variable
@@ -263,16 +260,18 @@ def run_full_comparison(
         try:
             result = run_variable_comparison(var, year, tolerance)
             results.append(result)
-            print(f"  {var}: {result['match_rate']*100:.1f}% match rate")
+            print(f"  {var}: {result['match_rate'] * 100:.1f}% match rate")
         except Exception as e:
             print(f"  {var}: ERROR - {e}")
-            results.append({
-                "variable": var,
-                "year": year,
-                "error": str(e),
-                "match_rate": 0,
-                "n_records": 0,
-            })
+            results.append(
+                {
+                    "variable": var,
+                    "year": year,
+                    "error": str(e),
+                    "match_rate": 0,
+                    "n_records": 0,
+                }
+            )
 
     return generate_dashboard_json(results, year)
 

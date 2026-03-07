@@ -82,8 +82,11 @@ class ConsensusEngine:
         # Sort by validator type for consistent ordering
         self.validators.sort(
             key=lambda v: (
-                0 if v.validator_type == ValidatorType.PRIMARY else
-                1 if v.validator_type == ValidatorType.REFERENCE else 2
+                0
+                if v.validator_type == ValidatorType.PRIMARY
+                else 1
+                if v.validator_type == ValidatorType.REFERENCE
+                else 2
             )
         )
 
@@ -123,22 +126,16 @@ class ConsensusEngine:
                 validator_results[validator.name] = result
 
         # Compute consensus
-        consensus_value, consensus_level = self._compute_consensus(
-            validator_results, expected_value, claude_confidence
-        )
+        consensus_value, consensus_level = self._compute_consensus(validator_results, expected_value, claude_confidence)
 
         # Compute reward signal
-        reward_signal = self._compute_reward(
-            validator_results, expected_value, consensus_level
-        )
+        reward_signal = self._compute_reward(validator_results, expected_value, consensus_level)
 
         # Compute confidence
         confidence = self._compute_confidence(validator_results, consensus_value)
 
         # Detect potential upstream bugs
-        potential_bugs = self._detect_potential_bugs(
-            validator_results, expected_value, claude_confidence, test_case
-        )
+        potential_bugs = self._detect_potential_bugs(validator_results, expected_value, claude_confidence, test_case)
 
         return ValidationResult(
             test_case=test_case,
@@ -182,9 +179,7 @@ class ConsensusEngine:
             primary_value = primary_results[0][1]
             if abs(primary_value - expected) <= self.tolerance:
                 # Check if majority also agrees with primary
-                agreeing = sum(
-                    1 for _, v, _ in values if abs(v - primary_value) <= self.tolerance
-                )
+                agreeing = sum(1 for _, v, _ in values if abs(v - primary_value) <= self.tolerance)
                 if agreeing > len(values) / 2:
                     return primary_value, ConsensusLevel.PRIMARY_CONFIRMED
 
@@ -257,9 +252,7 @@ class ConsensusEngine:
 
         return max(-1.0, min(1.0, reward))
 
-    def _compute_confidence(
-        self, results: dict[str, ValidatorResult], consensus_value: float | None
-    ) -> float:
+    def _compute_confidence(self, results: dict[str, ValidatorResult], consensus_value: float | None) -> float:
         """Compute confidence in the validation result (0.0 to 1.0)."""
         if consensus_value is None:
             return 0.0
@@ -281,20 +274,17 @@ class ConsensusEngine:
 
         # Agreement with consensus
         agreeing = sum(
-            1 for r in successful
-            if r.calculated_value is not None
-            and abs(r.calculated_value - consensus_value) <= self.tolerance
+            1
+            for r in successful
+            if r.calculated_value is not None and abs(r.calculated_value - consensus_value) <= self.tolerance
         )
         agreement_rate = agreeing / n_successful if n_successful > 0 else 0
 
         # Bonus for primary validator
-        has_primary = any(
-            r.validator_type == ValidatorType.PRIMARY and r.success
-            for r in results.values()
-        )
+        has_primary = any(r.validator_type == ValidatorType.PRIMARY and r.success for r in results.values())
         primary_bonus = 0.1 if has_primary else 0
 
-        confidence = (success_rate * 0.3 + agreement_rate * 0.6 + primary_bonus)
+        confidence = success_rate * 0.3 + agreement_rate * 0.6 + primary_bonus
         return min(1.0, confidence)
 
     def _detect_potential_bugs(
@@ -323,17 +313,19 @@ class ConsensusEngine:
             diff = abs(result.calculated_value - expected)
             if diff > self.tolerance:
                 # Potential bug in this validator
-                potential_bugs.append({
-                    "validator": name,
-                    "validator_type": result.validator_type.value,
-                    "expected": expected,
-                    "actual": result.calculated_value,
-                    "difference": diff,
-                    "citation": test_case.citation,
-                    "test_case": test_case.name,
-                    "inputs": test_case.inputs,
-                    "claude_confidence": claude_confidence,
-                })
+                potential_bugs.append(
+                    {
+                        "validator": name,
+                        "validator_type": result.validator_type.value,
+                        "expected": expected,
+                        "actual": result.calculated_value,
+                        "difference": diff,
+                        "citation": test_case.citation,
+                        "test_case": test_case.name,
+                        "inputs": test_case.inputs,
+                        "claude_confidence": claude_confidence,
+                    }
+                )
 
         return potential_bugs
 

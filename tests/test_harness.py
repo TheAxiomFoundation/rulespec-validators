@@ -42,10 +42,10 @@ from cosilico_validators.harness.scorecard import (
 # harness/__init__.py dataclass tests
 # ============================================================================
 
+
 class TestVariableAlignment:
     def test_consensus_all_rates(self):
-        va = VariableAlignment(variable="eitc", section="26/32",
-                               policyengine=0.95, taxsim=0.90, taxcalc=0.85)
+        va = VariableAlignment(variable="eitc", section="26/32", policyengine=0.95, taxsim=0.90, taxcalc=0.85)
         assert va.consensus == pytest.approx(0.9)
 
     def test_consensus_some_rates(self):
@@ -73,40 +73,61 @@ class TestCoverageResult:
 
 class TestQualityResult:
     def test_overall_score_all_pass(self):
-        qr = QualityResult(test_coverage=1.0, no_literals_pass=True,
-                          all_imports_valid=True, all_dtypes_valid=True)
+        qr = QualityResult(test_coverage=1.0, no_literals_pass=True, all_imports_valid=True, all_dtypes_valid=True)
         assert qr.overall_score == 100.0
 
     def test_overall_score_all_fail(self):
-        qr = QualityResult(test_coverage=0.0, no_literals_pass=False,
-                          all_imports_valid=False, all_dtypes_valid=False)
+        qr = QualityResult(
+            test_coverage=0.0,
+            no_literals_pass=False,
+            all_imports_valid=False,
+            all_dtypes_valid=False,
+            all_grounded=False,
+        )
         assert qr.overall_score == 0.0
 
     def test_overall_score_partial(self):
-        qr = QualityResult(test_coverage=0.5, no_literals_pass=True,
-                          all_imports_valid=False, all_dtypes_valid=True)
-        # 25 (literals) + 0 (imports) + 25 (dtypes) + 0.5*25 (coverage) = 62.5
-        assert qr.overall_score == pytest.approx(62.5)
+        qr = QualityResult(test_coverage=0.5, no_literals_pass=True, all_imports_valid=False, all_dtypes_valid=True)
+        # 20 (literals) + 0 (imports) + 20 (dtypes) + 20 (grounded default True) + 0.5*20 (coverage) = 70
+        assert qr.overall_score == pytest.approx(70.0)
 
 
 class TestHarnessResult:
     def _make_result(self, with_review=False):
-        alignment = AlignmentResult(overall_rate=0.95, by_variable={
-            "eitc": VariableAlignment(variable="eitc", section="26/32", policyengine=0.95),
-        }, by_validator={"policyengine": 0.95})
+        alignment = AlignmentResult(
+            overall_rate=0.95,
+            by_variable={
+                "eitc": VariableAlignment(variable="eitc", section="26/32", policyengine=0.95),
+            },
+            by_validator={"policyengine": 0.95},
+        )
         coverage = CoverageResult(implemented=5, total=13, by_section={"26/32": (1, 1)})
-        quality = QualityResult(test_coverage=0.8, no_literals_pass=True,
-                               all_imports_valid=True, all_dtypes_valid=True,
-                               issues=[QualityIssue(file="test.rac", line=1,
-                                       category="test", severity="warning", message="test")])
+        quality = QualityResult(
+            test_coverage=0.8,
+            no_literals_pass=True,
+            all_imports_valid=True,
+            all_dtypes_valid=True,
+            issues=[QualityIssue(file="test.rac", line=1, category="test", severity="warning", message="test")],
+        )
         review = None
         if with_review:
-            review = ReviewResult(overall_score=7.0, accuracy=7.0, completeness=7.0,
-                                 parameterization=7.0, test_quality=7.0,
-                                 feedback="Good", reviewed_files=["test.rac"])
-        return HarnessResult(timestamp="2024-01-01", git_commit="abc",
-                            alignment=alignment, coverage=coverage,
-                            quality=quality, review=review)
+            review = ReviewResult(
+                overall_score=7.0,
+                accuracy=7.0,
+                completeness=7.0,
+                parameterization=7.0,
+                test_quality=7.0,
+                feedback="Good",
+                reviewed_files=["test.rac"],
+            )
+        return HarnessResult(
+            timestamp="2024-01-01",
+            git_commit="abc",
+            alignment=alignment,
+            coverage=coverage,
+            quality=quality,
+            review=review,
+        )
 
     def test_to_dict(self):
         result = self._make_result()
@@ -131,13 +152,18 @@ class TestCheckpointDataclass:
     def test_from_result(self):
         alignment = AlignmentResult(overall_rate=0.95)
         coverage = CoverageResult(implemented=5, total=13)
-        quality = QualityResult(test_coverage=0.8, no_literals_pass=True,
-                               all_imports_valid=True, all_dtypes_valid=True)
-        review = ReviewResult(overall_score=7.0, accuracy=7.0, completeness=7.0,
-                             parameterization=7.0, test_quality=7.0, feedback="Good")
-        result = HarnessResult(timestamp="2024-01-01", git_commit="abc",
-                              alignment=alignment, coverage=coverage,
-                              quality=quality, review=review)
+        quality = QualityResult(test_coverage=0.8, no_literals_pass=True, all_imports_valid=True, all_dtypes_valid=True)
+        review = ReviewResult(
+            overall_score=7.0, accuracy=7.0, completeness=7.0, parameterization=7.0, test_quality=7.0, feedback="Good"
+        )
+        result = HarnessResult(
+            timestamp="2024-01-01",
+            git_commit="abc",
+            alignment=alignment,
+            coverage=coverage,
+            quality=quality,
+            review=review,
+        )
         cp = Checkpoint.from_result(result)
         assert cp.scores["alignment"] == 0.95
         assert cp.scores["coverage"] == pytest.approx(5 / 13)
@@ -146,22 +172,28 @@ class TestCheckpointDataclass:
     def test_from_result_no_review(self):
         alignment = AlignmentResult(overall_rate=0.95)
         coverage = CoverageResult(implemented=5, total=13)
-        quality = QualityResult(test_coverage=0.8, no_literals_pass=True,
-                               all_imports_valid=True, all_dtypes_valid=True)
-        result = HarnessResult(timestamp="2024-01-01", git_commit="abc",
-                              alignment=alignment, coverage=coverage, quality=quality)
+        quality = QualityResult(test_coverage=0.8, no_literals_pass=True, all_imports_valid=True, all_dtypes_valid=True)
+        result = HarnessResult(
+            timestamp="2024-01-01", git_commit="abc", alignment=alignment, coverage=coverage, quality=quality
+        )
         cp = Checkpoint.from_result(result)
         assert cp.scores["review"] == 0.0
 
 
 class TestDelta:
     def test_delta_properties(self):
-        before = Checkpoint(timestamp="t1", git_commit="a",
-                           scores={"alignment": 0.8, "coverage": 0.5,
-                                   "quality": 0.6, "review": 0.7}, details={})
-        after = Checkpoint(timestamp="t2", git_commit="b",
-                          scores={"alignment": 0.9, "coverage": 0.6,
-                                  "quality": 0.7, "review": 0.8}, details={})
+        before = Checkpoint(
+            timestamp="t1",
+            git_commit="a",
+            scores={"alignment": 0.8, "coverage": 0.5, "quality": 0.6, "review": 0.7},
+            details={},
+        )
+        after = Checkpoint(
+            timestamp="t2",
+            git_commit="b",
+            scores={"alignment": 0.9, "coverage": 0.6, "quality": 0.7, "review": 0.8},
+            details={},
+        )
         delta = Delta(before=before, after=after)
         assert delta.alignment_delta == pytest.approx(0.1)
         assert delta.coverage_delta == pytest.approx(0.1)
@@ -169,18 +201,22 @@ class TestDelta:
         assert delta.review_delta == pytest.approx(0.1)
 
     def test_has_regression_false(self):
-        before = Checkpoint(timestamp="t1", git_commit="a",
-                           scores={"alignment": 0.8, "coverage": 0.5, "quality": 0.6}, details={})
-        after = Checkpoint(timestamp="t2", git_commit="b",
-                          scores={"alignment": 0.9, "coverage": 0.6, "quality": 0.7}, details={})
+        before = Checkpoint(
+            timestamp="t1", git_commit="a", scores={"alignment": 0.8, "coverage": 0.5, "quality": 0.6}, details={}
+        )
+        after = Checkpoint(
+            timestamp="t2", git_commit="b", scores={"alignment": 0.9, "coverage": 0.6, "quality": 0.7}, details={}
+        )
         delta = Delta(before=before, after=after)
         assert not delta.has_regression()
 
     def test_has_regression_true(self):
-        before = Checkpoint(timestamp="t1", git_commit="a",
-                           scores={"alignment": 0.9, "coverage": 0.5, "quality": 0.6}, details={})
-        after = Checkpoint(timestamp="t2", git_commit="b",
-                          scores={"alignment": 0.8, "coverage": 0.6, "quality": 0.7}, details={})
+        before = Checkpoint(
+            timestamp="t1", git_commit="a", scores={"alignment": 0.9, "coverage": 0.5, "quality": 0.6}, details={}
+        )
+        after = Checkpoint(
+            timestamp="t2", git_commit="b", scores={"alignment": 0.8, "coverage": 0.6, "quality": 0.7}, details={}
+        )
         delta = Delta(before=before, after=after)
         assert delta.has_regression()
 
@@ -195,6 +231,7 @@ class TestDelta:
 # ============================================================================
 # harness/checkpoint.py tests
 # ============================================================================
+
 
 class TestGetGitCommit:
     def test_returns_string(self):
@@ -215,11 +252,13 @@ class TestGetGitCommit:
 class TestSaveLoadCheckpoint:
     def _make_result(self):
         return HarnessResult(
-            timestamp="2024-01-01", git_commit="abc",
+            timestamp="2024-01-01",
+            git_commit="abc",
             alignment=AlignmentResult(overall_rate=0.95),
             coverage=CoverageResult(implemented=5, total=13),
-            quality=QualityResult(test_coverage=0.8, no_literals_pass=True,
-                                 all_imports_valid=True, all_dtypes_valid=True),
+            quality=QualityResult(
+                test_coverage=0.8, no_literals_pass=True, all_imports_valid=True, all_dtypes_valid=True
+            ),
         )
 
     def test_save_and_load(self, tmp_path):
@@ -244,10 +283,8 @@ class TestSaveLoadCheckpoint:
 
 class TestCompareCheckpoints:
     def test_compare(self):
-        before = Checkpoint(timestamp="t1", git_commit="a",
-                           scores={"alignment": 0.8}, details={})
-        after = Checkpoint(timestamp="t2", git_commit="b",
-                          scores={"alignment": 0.9}, details={})
+        before = Checkpoint(timestamp="t1", git_commit="a", scores={"alignment": 0.8}, details={})
+        after = Checkpoint(timestamp="t2", git_commit="b", scores={"alignment": 0.9}, details={})
         delta = compare_checkpoints(before, after)
         assert isinstance(delta, Delta)
         assert delta.alignment_delta == pytest.approx(0.1)
@@ -260,14 +297,15 @@ class TestBaselineFunctions:
 
     def test_save_and_load_baseline(self, tmp_path):
         result = HarnessResult(
-            timestamp="2024-01-01", git_commit="abc",
+            timestamp="2024-01-01",
+            git_commit="abc",
             alignment=AlignmentResult(overall_rate=0.95),
             coverage=CoverageResult(implemented=5, total=13),
-            quality=QualityResult(test_coverage=0.8, no_literals_pass=True,
-                                 all_imports_valid=True, all_dtypes_valid=True),
+            quality=QualityResult(
+                test_coverage=0.8, no_literals_pass=True, all_imports_valid=True, all_dtypes_valid=True
+            ),
         )
-        with patch("cosilico_validators.harness.checkpoint.get_baseline_path",
-                    return_value=tmp_path / "test.json"):
+        with patch("cosilico_validators.harness.checkpoint.get_baseline_path", return_value=tmp_path / "test.json"):
             path = save_baseline(result, "test")
             assert path.exists()
             loaded = load_baseline("test")
@@ -282,6 +320,7 @@ class TestBaselineFunctions:
 # ============================================================================
 # harness/runner.py tests
 # ============================================================================
+
 
 class TestValidationHarness:
     def test_init_defaults(self):
@@ -305,8 +344,7 @@ class TestValidationHarness:
         (section_path / "a.rac").write_text("variable eitc:\n  formula: |\n    0")
 
         with patch("cosilico_validators.harness.runner.get_git_commit", return_value="abc"):
-            h = ValidationHarness(statute_root=statute_root,
-                                  run_alignment=False, run_quality=False)
+            h = ValidationHarness(statute_root=statute_root, run_alignment=False, run_quality=False)
             result = h.run_full_validation()
             assert result.coverage.total == len(VARIABLES)
             assert result.coverage.implemented >= 1
@@ -346,16 +384,19 @@ class TestValidationHarness:
                 {"variable": "eitc", "summary": {"matchRate": 0.95}},
             ]
         }
-        with patch("cosilico_validators.harness.runner.get_git_commit", return_value="abc"), \
-             patch("cosilico_validators.dashboard_export.run_export", return_value=mock_dashboard):
+        with (
+            patch("cosilico_validators.harness.runner.get_git_commit", return_value="abc"),
+            patch("cosilico_validators.dashboard_export.run_export", return_value=mock_dashboard),
+        ):
             h = ValidationHarness(run_alignment=True, run_quality=False)
             result = h.run_full_validation()
             assert result.alignment.overall_rate > 0
 
     def test_alignment_checks_failure(self):
-        with patch("cosilico_validators.harness.runner.get_git_commit", return_value="abc"), \
-             patch("cosilico_validators.dashboard_export.run_export",
-                   side_effect=Exception("fail")):
+        with (
+            patch("cosilico_validators.harness.runner.get_git_commit", return_value="abc"),
+            patch("cosilico_validators.dashboard_export.run_export", side_effect=Exception("fail")),
+        ):
             h = ValidationHarness(run_alignment=True, run_quality=False)
             result = h.run_full_validation()
             assert result.alignment.overall_rate == 0.0
@@ -380,6 +421,7 @@ class TestRunHarness:
 # ============================================================================
 # harness/scorecard.py tests
 # ============================================================================
+
 
 class TestFormatDelta:
     def test_positive_percentage(self):
@@ -410,25 +452,40 @@ class TestGenerateScorecard:
         issues = []
         if with_issues:
             issues = [
-                QualityIssue(file="test.rac", line=i, category="test",
-                            severity="error" if i <= 5 else "warning", message=f"issue {i}")
+                QualityIssue(
+                    file="test.rac",
+                    line=i,
+                    category="test",
+                    severity="error" if i <= 5 else "warning",
+                    message=f"issue {i}",
+                )
                 for i in range(1, 12)  # 11 issues to test truncation
             ]
         return HarnessResult(
-            timestamp="2024-01-01", git_commit="abc",
-            alignment=AlignmentResult(overall_rate=0.95, by_variable={
-                "eitc": VariableAlignment(variable="eitc", section="26/32",
-                                          policyengine=0.95, taxsim=0.90),
-            }, by_validator={"policyengine": 0.95}),
-            coverage=CoverageResult(implemented=5, total=13,
-                                   by_section={"26/32": (1, 1), "26/24": (2, 3)}),
-            quality=QualityResult(test_coverage=0.8, no_literals_pass=True,
-                                 all_imports_valid=True, all_dtypes_valid=True,
-                                 issues=issues),
-            review=ReviewResult(overall_score=7.0, accuracy=7.0, completeness=7.0,
-                               parameterization=7.0, test_quality=7.0,
-                               feedback="Line 1\nLine 2",
-                               reviewed_files=["test.rac"]) if with_review else None,
+            timestamp="2024-01-01",
+            git_commit="abc",
+            alignment=AlignmentResult(
+                overall_rate=0.95,
+                by_variable={
+                    "eitc": VariableAlignment(variable="eitc", section="26/32", policyengine=0.95, taxsim=0.90),
+                },
+                by_validator={"policyengine": 0.95},
+            ),
+            coverage=CoverageResult(implemented=5, total=13, by_section={"26/32": (1, 1), "26/24": (2, 3)}),
+            quality=QualityResult(
+                test_coverage=0.8, no_literals_pass=True, all_imports_valid=True, all_dtypes_valid=True, issues=issues
+            ),
+            review=ReviewResult(
+                overall_score=7.0,
+                accuracy=7.0,
+                completeness=7.0,
+                parameterization=7.0,
+                test_quality=7.0,
+                feedback="Line 1\nLine 2",
+                reviewed_files=["test.rac"],
+            )
+            if with_review
+            else None,
         )
 
     def test_scorecard_without_baseline(self):
@@ -440,9 +497,12 @@ class TestGenerateScorecard:
 
     def test_scorecard_with_baseline(self):
         result = self._make_result()
-        baseline = Checkpoint(timestamp="t1", git_commit="a",
-                             scores={"alignment": 0.90, "coverage": 0.3,
-                                     "quality": 0.5, "review": 0.0}, details={})
+        baseline = Checkpoint(
+            timestamp="t1",
+            git_commit="a",
+            scores={"alignment": 0.90, "coverage": 0.3, "quality": 0.5, "review": 0.0},
+            details={},
+        )
         sc = generate_scorecard(result, baseline)
         assert "Scorecard" in sc
         assert "arrow_up" in sc  # alignment improved
@@ -462,19 +522,24 @@ class TestGenerateScorecard:
 
     def test_scorecard_with_baseline_and_review(self):
         result = self._make_result(with_review=True)
-        baseline = Checkpoint(timestamp="t1", git_commit="a",
-                             scores={"alignment": 0.90, "coverage": 0.3,
-                                     "quality": 0.5, "review": 0.5}, details={})
+        baseline = Checkpoint(
+            timestamp="t1",
+            git_commit="a",
+            scores={"alignment": 0.90, "coverage": 0.3, "quality": 0.5, "review": 0.5},
+            details={},
+        )
         sc = generate_scorecard(result, baseline)
         assert "Review" in sc
 
     def test_scorecard_no_alignment_variables(self):
         result = HarnessResult(
-            timestamp="2024-01-01", git_commit="abc",
+            timestamp="2024-01-01",
+            git_commit="abc",
             alignment=AlignmentResult(overall_rate=0.0),
             coverage=CoverageResult(implemented=0, total=13),
-            quality=QualityResult(test_coverage=0.0, no_literals_pass=False,
-                                 all_imports_valid=False, all_dtypes_valid=False),
+            quality=QualityResult(
+                test_coverage=0.0, no_literals_pass=False, all_imports_valid=False, all_dtypes_valid=False
+            ),
         )
         sc = generate_scorecard(result)
         assert "Scorecard" in sc
@@ -484,11 +549,13 @@ class TestGenerateScorecard:
 class TestGenerateCompactScorecard:
     def test_compact_no_baseline(self):
         result = HarnessResult(
-            timestamp="2024-01-01", git_commit="abc",
+            timestamp="2024-01-01",
+            git_commit="abc",
             alignment=AlignmentResult(overall_rate=0.95),
             coverage=CoverageResult(implemented=5, total=13),
-            quality=QualityResult(test_coverage=0.8, no_literals_pass=True,
-                                 all_imports_valid=True, all_dtypes_valid=True),
+            quality=QualityResult(
+                test_coverage=0.8, no_literals_pass=True, all_imports_valid=True, all_dtypes_valid=True
+            ),
         )
         sc = generate_compact_scorecard(result)
         assert "Alignment: 95.0%" in sc
@@ -496,39 +563,49 @@ class TestGenerateCompactScorecard:
 
     def test_compact_with_baseline(self):
         result = HarnessResult(
-            timestamp="2024-01-01", git_commit="abc",
+            timestamp="2024-01-01",
+            git_commit="abc",
             alignment=AlignmentResult(overall_rate=0.95),
             coverage=CoverageResult(implemented=5, total=13),
-            quality=QualityResult(test_coverage=0.8, no_literals_pass=True,
-                                 all_imports_valid=True, all_dtypes_valid=True),
+            quality=QualityResult(
+                test_coverage=0.8, no_literals_pass=True, all_imports_valid=True, all_dtypes_valid=True
+            ),
         )
-        baseline = Checkpoint(timestamp="t1", git_commit="a",
-                             scores={"alignment": 0.90}, details={})
+        baseline = Checkpoint(timestamp="t1", git_commit="a", scores={"alignment": 0.90}, details={})
         sc = generate_compact_scorecard(result, baseline)
         assert "+5.0%" in sc
 
     def test_compact_with_review(self):
         result = HarnessResult(
-            timestamp="2024-01-01", git_commit="abc",
+            timestamp="2024-01-01",
+            git_commit="abc",
             alignment=AlignmentResult(overall_rate=0.95),
             coverage=CoverageResult(implemented=5, total=13),
-            quality=QualityResult(test_coverage=0.8, no_literals_pass=True,
-                                 all_imports_valid=True, all_dtypes_valid=True),
-            review=ReviewResult(overall_score=7.0, accuracy=7.0, completeness=7.0,
-                               parameterization=7.0, test_quality=7.0, feedback="Good"),
+            quality=QualityResult(
+                test_coverage=0.8, no_literals_pass=True, all_imports_valid=True, all_dtypes_valid=True
+            ),
+            review=ReviewResult(
+                overall_score=7.0,
+                accuracy=7.0,
+                completeness=7.0,
+                parameterization=7.0,
+                test_quality=7.0,
+                feedback="Good",
+            ),
         )
         sc = generate_compact_scorecard(result)
         assert "Review: 7.0/10" in sc
 
     def test_compact_no_delta(self):
         result = HarnessResult(
-            timestamp="2024-01-01", git_commit="abc",
+            timestamp="2024-01-01",
+            git_commit="abc",
             alignment=AlignmentResult(overall_rate=0.95),
             coverage=CoverageResult(implemented=5, total=13),
-            quality=QualityResult(test_coverage=0.8, no_literals_pass=True,
-                                 all_imports_valid=True, all_dtypes_valid=True),
+            quality=QualityResult(
+                test_coverage=0.8, no_literals_pass=True, all_imports_valid=True, all_dtypes_valid=True
+            ),
         )
-        baseline = Checkpoint(timestamp="t1", git_commit="a",
-                             scores={"alignment": 0.95}, details={})
+        baseline = Checkpoint(timestamp="t1", git_commit="a", scores={"alignment": 0.95}, details={})
         sc = generate_compact_scorecard(result, baseline)
         assert "+0.0%" not in sc  # No delta shown for zero change

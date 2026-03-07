@@ -79,6 +79,7 @@ class QualityResult:
     no_literals_pass: bool
     all_imports_valid: bool
     all_dtypes_valid: bool
+    all_grounded: bool = True  # All values grounded in rule text
     issues: list[QualityIssue] = field(default_factory=list)
 
     @property
@@ -86,12 +87,14 @@ class QualityResult:
         """Overall quality score 0-100."""
         score = 0.0
         if self.no_literals_pass:
-            score += 25
+            score += 20
         if self.all_imports_valid:
-            score += 25
+            score += 20
         if self.all_dtypes_valid:
-            score += 25
-        score += self.test_coverage * 25
+            score += 20
+        if self.all_grounded:
+            score += 20
+        score += self.test_coverage * 20
         return score
 
 
@@ -229,8 +232,4 @@ class Delta:
 
     def has_regression(self, threshold: float = 0.01) -> bool:
         """Check if any metric regressed beyond threshold."""
-        return (
-            self.alignment_delta < -threshold
-            or self.coverage_delta < -threshold
-            or self.quality_delta < -threshold
-        )
+        return self.alignment_delta < -threshold or self.coverage_delta < -threshold or self.quality_delta < -threshold

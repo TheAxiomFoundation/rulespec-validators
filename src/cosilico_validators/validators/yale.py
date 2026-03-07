@@ -95,10 +95,7 @@ class YaleTaxValidator(BaseValidator):
             path = Path(provided_path)
             if path.exists() and (path / "src" / "main.R").exists():
                 return path
-            raise FileNotFoundError(
-                f"Tax-Simulator not found at: {path}. "
-                "Expected to find src/main.R"
-            )
+            raise FileNotFoundError(f"Tax-Simulator not found at: {path}. Expected to find src/main.R")
 
         # Search standard locations
         search_paths = [
@@ -131,18 +128,13 @@ class YaleTaxValidator(BaseValidator):
             if result.returncode != 0:
                 raise RuntimeError("Rscript returned non-zero exit code")
         except FileNotFoundError as e:
-            raise RuntimeError(
-                "Rscript not found in PATH. Install R 4.0+ from "
-                "https://cran.r-project.org/"
-            ) from e
+            raise RuntimeError("Rscript not found in PATH. Install R 4.0+ from https://cran.r-project.org/") from e
 
     def supports_variable(self, variable: str) -> bool:
         """Check if this validator supports a given variable."""
         return variable.lower() in SUPPORTED_VARIABLES
 
-    def _create_tax_unit_input(
-        self, test_case: TestCase, year: int, temp_dir: Path
-    ) -> Path:
+    def _create_tax_unit_input(self, test_case: TestCase, year: int, temp_dir: Path) -> Path:
         """Create a tax unit input file for the Tax-Simulator.
 
         The Tax-Simulator expects microdata in a specific format.
@@ -164,8 +156,7 @@ class YaleTaxValidator(BaseValidator):
             "age_head": inputs.get("age", 30),
             "age_spouse": inputs.get("spouse_age", 0),
             # Children
-            "n24": inputs.get("eitc_qualifying_children_count",
-                           inputs.get("num_children", 0)),
+            "n24": inputs.get("eitc_qualifying_children_count", inputs.get("num_children", 0)),
             "nu18": inputs.get("num_children", 0),
             # Weighting (single unit)
             "s006": 1.0,
@@ -186,6 +177,7 @@ class YaleTaxValidator(BaseValidator):
         # Write as CSV
         input_file = temp_dir / "tax_units.csv"
         import csv
+
         with open(input_file, "w", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=record.keys())
             writer.writeheader()
@@ -222,22 +214,15 @@ class YaleTaxValidator(BaseValidator):
 
         # Minimal runscript for single-year calculation
         import csv
+
         with open(runscript_file, "w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow([
-                "scenario_id", "tax_law", "behavior_module",
-                "start_year", "end_year"
-            ])
-            writer.writerow([
-                "baseline", "current_law", "",
-                str(year), str(year)
-            ])
+            writer.writerow(["scenario_id", "tax_law", "behavior_module", "start_year", "end_year"])
+            writer.writerow(["baseline", "current_law", "", str(year), str(year)])
 
         return runscript_file
 
-    def _run_simulator(
-        self, input_file: Path, runscript: Path, temp_dir: Path, year: int
-    ) -> dict[str, float]:
+    def _run_simulator(self, input_file: Path, runscript: Path, temp_dir: Path, year: int) -> dict[str, float]:
         """Run the Tax-Simulator and parse results.
 
         Note: This is a simplified implementation. The full Tax-Simulator
@@ -322,6 +307,7 @@ class YaleTaxValidator(BaseValidator):
     def _parse_csv_output(self, csv_file: Path) -> dict[str, float]:
         """Parse a Tax-Simulator CSV output file."""
         import csv
+
         results = {}
 
         with open(csv_file) as f:
@@ -351,9 +337,7 @@ class YaleTaxValidator(BaseValidator):
 
         return results
 
-    def validate(
-        self, test_case: TestCase, variable: str, year: int = 2024
-    ) -> ValidatorResult:
+    def validate(self, test_case: TestCase, variable: str, year: int = 2024) -> ValidatorResult:
         """Run validation using Yale Tax-Simulator.
 
         Note: This validator requires:

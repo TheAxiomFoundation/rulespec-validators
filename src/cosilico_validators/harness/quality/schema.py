@@ -4,7 +4,7 @@ Checks:
 - Valid entity types: Person, TaxUnit, Household, Family
 - Valid period types: Year, Month, Day
 - Valid dtype types: Money, Rate, Boolean, Integer, Enum[...]
-- No hardcoded literals (only -1, 0, 1, 2, 3 allowed)
+- No hardcoded literals (only -1, 0, 1 allowed)
 """
 
 import re
@@ -15,15 +15,22 @@ from .. import QualityIssue
 # Valid values for schema fields
 VALID_ENTITIES = {
     # Core tax/benefit units
-    "Person", "TaxUnit", "Household", "Family",
+    "Person",
+    "TaxUnit",
+    "Household",
+    "Family",
     # Benefit program units
-    "TanfUnit", "SnapUnit", "SPMUnit",
+    "TanfUnit",
+    "SnapUnit",
+    "SPMUnit",
     # Business/asset entities (for corporate/capital gains)
-    "Corporation", "Business", "Asset",
+    "Corporation",
+    "Business",
+    "Asset",
 }
 VALID_PERIODS = {"Year", "Month", "Week", "Day"}
 VALID_DTYPES = {"Money", "Rate", "Boolean", "Integer", "Count", "String", "Decimal"}
-ALLOWED_INTEGERS = {-1, 0, 1, 2, 3}
+ALLOWED_INTEGERS = {-1, 0, 1}
 
 # Regex patterns
 ENTITY_PATTERN = re.compile(r"^\s*entity:\s*(\w+)")
@@ -41,7 +48,7 @@ LITERAL_PATTERN = re.compile(
     (
         \d+\.\d+      # Float like 0.075
         |
-        [4-9]         # Single digit 4-9
+        [2-9]         # Single digit 2-9
         |
         [1-9]\d+      # Multi-digit starting with 1-9 (10+)
     )
@@ -144,10 +151,10 @@ def check_schema(rac_files: list[Path]) -> tuple[list[QualityIssue], bool, bool]
 
                 for match in LITERAL_PATTERN.finditer(code_line):
                     literal = match.group(1)
-                    # Check if it's an allowed value (integers -1,0,1,2,3 or their float equivalents)
+                    # Check if it's an allowed value
                     try:
                         val = float(literal)
-                        if val in {-1.0, 0.0, 1.0, 2.0, 3.0}:
+                        if val in {float(x) for x in ALLOWED_INTEGERS}:
                             continue
                     except ValueError:  # pragma: no cover – regex only matches numeric literals
                         pass

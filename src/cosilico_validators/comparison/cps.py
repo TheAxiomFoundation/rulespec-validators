@@ -66,6 +66,7 @@ COMPARISON_VARIABLES = load_variable_mappings()
 @dataclass
 class ModelResult:
     """Result from a single model."""
+
     name: str
     total: float
     n_records: int
@@ -121,6 +122,7 @@ class ComparisonTotals:
 @dataclass
 class TimedResult:
     """Result with timing information."""
+
     data: dict[str, np.ndarray]
     elapsed_ms: float
 
@@ -268,7 +270,7 @@ def load_taxsim_values(
         depx = safe_int(row.get("num_eitc_children", 0))
         pwages = safe_float(row.get("earned_income", 0))
 
-        lines.append(f"{i+1},{year},0,{mstat},{page},{sage},{depx},{pwages:.2f},2")
+        lines.append(f"{i + 1},{year},0,{mstat},{page},{sage},{depx},{pwages:.2f},2")
 
     input_csv = "\n".join(lines)
 
@@ -440,17 +442,19 @@ def export_to_dashboard(
     total_pe_time = 0.0
 
     for var_name, totals in comparison.items():
-        sections.append({
-            "variable": var_name,
-            "title": totals.title,
-            "cosilico_total": totals.cosilico_total,
-            "policyengine_total": totals.policyengine_total,
-            "difference": totals.difference,
-            "percent_difference": totals.percent_difference,
-            "match_rate": totals.match_rate,
-            "mean_absolute_error": totals.mean_absolute_error,
-            "n_records": totals.n_records,
-        })
+        sections.append(
+            {
+                "variable": var_name,
+                "title": totals.title,
+                "cosilico_total": totals.cosilico_total,
+                "policyengine_total": totals.policyengine_total,
+                "difference": totals.difference,
+                "percent_difference": totals.percent_difference,
+                "match_rate": totals.match_rate,
+                "mean_absolute_error": totals.mean_absolute_error,
+                "n_records": totals.n_records,
+            }
+        )
         total_cos_time = totals.cosilico_time_ms  # Same for all vars
         total_pe_time = totals.policyengine_time_ms  # pragma: no cover – unreachable due to AttributeError above
 
@@ -506,30 +510,36 @@ def generate_report(year: int = 2024) -> str:
             row_parts.append(f"${val:>12.1f}B")
         lines.append(" ".join(row_parts))
 
-    lines.extend([
-        "-" * 100,
-        "",
-        "Records per model:",
-    ])
+    lines.extend(
+        [
+            "-" * 100,
+            "",
+            "Records per model:",
+        ]
+    )
 
     for model in model_names:
         n = first_result.models[model].n_records
         lines.append(f"  {model}: {n:,}")
 
-    lines.extend([
-        "",
-        "-" * 100,
-        "Performance (ms):",
-    ])
+    lines.extend(
+        [
+            "",
+            "-" * 100,
+            "Performance (ms):",
+        ]
+    )
 
     for model in model_names:
         ms = first_result.models[model].time_ms
-        lines.append(f"  {model}: {ms:,.0f} ms ({ms/1000:.1f}s)")
+        lines.append(f"  {model}: {ms:,.0f} ms ({ms / 1000:.1f}s)")
 
-    lines.extend([
-        "",
-        "=" * 100,
-    ])
+    lines.extend(
+        [
+            "",
+            "=" * 100,
+        ]
+    )
 
     return "\n".join(lines)
 

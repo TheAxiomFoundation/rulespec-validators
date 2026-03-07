@@ -178,11 +178,13 @@ class GitHubIssueManager:
 
         if response.status_code == 201:
             result = response.json()
-            self._filed_issues.append({
-                "repo": repo,
-                "number": result["number"],
-                "url": result["html_url"],
-            })
+            self._filed_issues.append(
+                {
+                    "repo": repo,
+                    "number": result["number"],
+                    "url": result["html_url"],
+                }
+            )
             return result
         else:
             return {
@@ -224,11 +226,13 @@ class GitHubIssueManager:
         for bug in bugs:
             confidence = bug.get("claude_confidence", 0)
             if confidence < confidence_threshold:
-                results.append({
-                    "skipped": True,
-                    "reason": f"Confidence {confidence:.1%} below threshold {confidence_threshold:.1%}",
-                    "bug": bug,
-                })
+                results.append(
+                    {
+                        "skipped": True,
+                        "reason": f"Confidence {confidence:.1%} below threshold {confidence_threshold:.1%}",
+                        "bug": bug,
+                    }
+                )
                 continue
 
             report = self.create_issue_report(bug)

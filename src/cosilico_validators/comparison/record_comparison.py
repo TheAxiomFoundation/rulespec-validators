@@ -17,6 +17,7 @@ import pandas as pd
 @dataclass
 class RecordComparison:
     """Comparison results for a single variable across all models."""
+
     variable: str
     n_records: int
 
@@ -72,6 +73,7 @@ def load_cps_inputs(year: int = 2024) -> pd.DataFrame:
         sys.path.insert(0, str(data_sources))
 
     from tax_unit_builder import load_and_build_tax_units
+
     return load_and_build_tax_units(year)
 
 
@@ -142,7 +144,7 @@ def _create_pe_situation(row: pd.Series, year: int) -> dict:
     if is_joint:
         members.append("spouse")
     for i in range(n_deps):
-        members.append(f"dep{i+1}")
+        members.append(f"dep{i + 1}")
 
     # People
     people = {
@@ -171,7 +173,7 @@ def _create_pe_situation(row: pd.Series, year: int) -> dict:
 
     # EITC-qualifying children (under 19, or under 24 if student)
     for i in range(n_eitc_children):
-        dep_name = f"dep{i+1}"
+        dep_name = f"dep{i + 1}"
         people[dep_name] = {
             "age": {str(year): 10},  # Young child - qualifies for EITC
             "is_tax_unit_dependent": {str(year): True},
@@ -237,7 +239,9 @@ def run_taxsim(df: pd.DataFrame, year: int = 2024) -> tuple[pd.DataFrame, float]
     taxsim_path = get_taxsim_executable_path()
 
     # Build TAXSIM input
-    lines = ["taxsimid,year,state,mstat,page,sage,depx,pwages,swages,dividends,intrec,ltcg,stcg,otherprop,pensions,gssi,psemp,ssemp,idtl"]
+    lines = [
+        "taxsimid,year,state,mstat,page,sage,depx,pwages,swages,dividends,intrec,ltcg,stcg,otherprop,pensions,gssi,psemp,ssemp,idtl"
+    ]
 
     for i, (_idx, row) in enumerate(df.iterrows()):
         mstat = 2 if row.get("is_joint", False) else 1
@@ -257,7 +261,9 @@ def run_taxsim(df: pd.DataFrame, year: int = 2024) -> tuple[pd.DataFrame, float]
         psemp = max(0, _safe_float(row.get("self_employment_income")))
         ssemp = 0
 
-        lines.append(f"{i+1},{year},0,{mstat},{page},{sage},{depx},{pwages:.2f},{swages:.2f},{dividends:.2f},{intrec:.2f},{ltcg:.2f},{stcg:.2f},{otherprop:.2f},{pensions:.2f},{gssi:.2f},{psemp:.2f},{ssemp:.2f},2")
+        lines.append(
+            f"{i + 1},{year},0,{mstat},{page},{sage},{depx},{pwages:.2f},{swages:.2f},{dividends:.2f},{intrec:.2f},{ltcg:.2f},{stcg:.2f},{otherprop:.2f},{pensions:.2f},{gssi:.2f},{psemp:.2f},{ssemp:.2f},2"
+        )
 
     input_csv = "\n".join(lines)
 
@@ -281,16 +287,18 @@ def run_taxsim(df: pd.DataFrame, year: int = 2024) -> tuple[pd.DataFrame, float]
     # Map TAXSIM output to our variables
     results = []
     for rec in output_records:
-        results.append({
-            "eitc": float(rec.get("v25", 0) or 0),
-            "non_refundable_ctc": float(rec.get("v22", 0) or 0),
-            "refundable_ctc": float(rec.get("actc", 0) or 0),
-            "income_tax_before_credits": float(rec.get("v19", 0) or 0),
-            "adjusted_gross_income": float(rec.get("v10", 0) or 0),
-        })
+        results.append(
+            {
+                "eitc": float(rec.get("v25", 0) or 0),
+                "non_refundable_ctc": float(rec.get("v22", 0) or 0),
+                "refundable_ctc": float(rec.get("actc", 0) or 0),
+                "income_tax_before_credits": float(rec.get("v19", 0) or 0),
+                "adjusted_gross_income": float(rec.get("v10", 0) or 0),
+            }
+        )
 
     elapsed = (time.perf_counter() - start) * 1000
-    result_df = pd.DataFrame(results, index=df.index[:len(results)])
+    result_df = pd.DataFrame(results, index=df.index[: len(results)])
 
     return result_df, elapsed
 
@@ -373,7 +381,7 @@ def print_comparison(results: dict[str, RecordComparison]):
         print(f"  Records: {comp.n_records:,}")
         print("  Weighted totals:")
         for model, total in totals.items():
-            print(f"    {model:15} ${total/1e9:>10.1f}B")
+            print(f"    {model:15} ${total / 1e9:>10.1f}B")
 
         mae = comp.mean_abs_diff_vs_pe
         print("  Mean abs diff vs PE:")

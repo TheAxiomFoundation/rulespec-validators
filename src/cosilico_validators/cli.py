@@ -20,11 +20,13 @@ def load_validators(include_policyengine: bool = True, include_taxsim: bool = Tr
 
     if include_taxsim:
         from cosilico_validators.validators.taxsim import TaxsimValidator
+
         validators.append(TaxsimValidator())
 
     if include_policyengine:
         try:
             from cosilico_validators.validators.policyengine import PolicyEngineValidator
+
             validators.append(PolicyEngineValidator())
         except ImportError:
             console.print("[yellow]PolicyEngine not installed, skipping[/yellow]")
@@ -56,6 +58,7 @@ def validate(test_file, variable, year, tolerance, no_policyengine, no_taxsim, c
             test_data = json.load(f)
     elif test_path.suffix in [".yaml", ".yml"]:
         import yaml
+
         with open(test_path) as f:
             test_data = yaml.safe_load(f)
     else:
@@ -65,22 +68,26 @@ def validate(test_file, variable, year, tolerance, no_policyengine, no_taxsim, c
     test_cases = []
     if isinstance(test_data, list):
         for tc in test_data:
-            test_cases.append(TestCase(
-                name=tc.get("name", "unnamed"),
-                inputs=tc.get("inputs", {}),
-                expected=tc.get("expected", {}),
-                citation=tc.get("citation"),
-                notes=tc.get("notes"),
-            ))
+            test_cases.append(
+                TestCase(
+                    name=tc.get("name", "unnamed"),
+                    inputs=tc.get("inputs", {}),
+                    expected=tc.get("expected", {}),
+                    citation=tc.get("citation"),
+                    notes=tc.get("notes"),
+                )
+            )
     elif isinstance(test_data, dict) and "test_cases" in test_data:
         for tc in test_data["test_cases"]:
-            test_cases.append(TestCase(
-                name=tc.get("name", "unnamed"),
-                inputs=tc.get("inputs", {}),
-                expected=tc.get("expected", {}),
-                citation=tc.get("citation"),
-                notes=tc.get("notes"),
-            ))
+            test_cases.append(
+                TestCase(
+                    name=tc.get("name", "unnamed"),
+                    inputs=tc.get("inputs", {}),
+                    expected=tc.get("expected", {}),
+                    citation=tc.get("citation"),
+                    notes=tc.get("notes"),
+                )
+            )
 
     if not test_cases:
         raise click.ClickException("No test cases found in file")
@@ -110,25 +117,27 @@ def validate(test_file, variable, year, tolerance, no_policyengine, no_taxsim, c
     if output:
         output_data = []
         for r in results:
-            output_data.append({
-                "test_case": r.test_case.name,
-                "variable": r.variable,
-                "expected": r.expected_value,
-                "consensus_value": r.consensus_value,
-                "consensus_level": r.consensus_level.value,
-                "reward_signal": r.reward_signal,
-                "confidence": r.confidence,
-                "matches_expected": r.matches_expected,
-                "validator_results": {
-                    name: {
-                        "calculated": vr.calculated_value,
-                        "error": vr.error,
-                        "success": vr.success,
-                    }
-                    for name, vr in r.validator_results.items()
-                },
-                "potential_bugs": r.potential_bugs,
-            })
+            output_data.append(
+                {
+                    "test_case": r.test_case.name,
+                    "variable": r.variable,
+                    "expected": r.expected_value,
+                    "consensus_value": r.consensus_value,
+                    "consensus_level": r.consensus_level.value,
+                    "reward_signal": r.reward_signal,
+                    "confidence": r.confidence,
+                    "matches_expected": r.matches_expected,
+                    "validator_results": {
+                        name: {
+                            "calculated": vr.calculated_value,
+                            "error": vr.error,
+                            "success": vr.success,
+                        }
+                        for name, vr in r.validator_results.items()
+                    },
+                    "potential_bugs": r.potential_bugs,
+                }
+            )
 
         with open(output, "w") as f:
             json.dump(output_data, f, indent=2)
@@ -181,11 +190,13 @@ def display_results(results):
     if all_bugs:
         console.print("\n")
         bug_panel = Panel(
-            "\n".join([
-                f"• {bug['validator']}: expected ${bug['expected']:,.0f}, got ${bug['actual']:,.0f} "
-                f"(diff: ${bug['difference']:,.0f})"
-                for bug in all_bugs
-            ]),
+            "\n".join(
+                [
+                    f"• {bug['validator']}: expected ${bug['expected']:,.0f}, got ${bug['actual']:,.0f} "
+                    f"(diff: ${bug['difference']:,.0f})"
+                    for bug in all_bugs
+                ]
+            ),
             title="[bold red]Potential Upstream Bugs Detected[/bold red]",
             border_style="red",
         )
@@ -206,7 +217,7 @@ def display_summary(results):
     console.print("\n")
     summary = f"""[bold]Summary[/bold]
 Total tests: {total}
-Matches: {matches}/{total} ({matches/total*100:.1f}%)
+Matches: {matches}/{total} ({matches / total * 100:.1f}%)
 Average reward: {avg_reward:+.3f}
 Average confidence: {avg_confidence:.1%}
 
@@ -237,7 +248,7 @@ def validators(variable):
         else:
             vars_str = ", ".join(vars_list[:5])
             if len(vars_list) > 5:
-                vars_str += f" (+{len(vars_list)-5} more)"
+                vars_str += f" (+{len(vars_list) - 5} more)"
 
         table.add_row(v.name, v.validator_type.value, vars_str)
 
@@ -267,33 +278,35 @@ def file_issues(results_file, repo, dry_run):
         title = f"Potential calculation error in {bug['test_case']}"
         body = f"""## Bug Report (Auto-generated)
 
-**Test Case:** {bug['test_case']}
+**Test Case:** {bug["test_case"]}
 **Variable:** Calculated value mismatch
 
 ### Expected vs Actual
-- **Expected (from statute):** ${bug['expected']:,.2f}
-- **Calculated:** ${bug['actual']:,.2f}
-- **Difference:** ${bug['difference']:,.2f}
+- **Expected (from statute):** ${bug["expected"]:,.2f}
+- **Calculated:** ${bug["actual"]:,.2f}
+- **Difference:** ${bug["difference"]:,.2f}
 
 ### Citation
-{bug.get('citation', 'N/A')}
+{bug.get("citation", "N/A")}
 
 ### Test Inputs
 ```json
-{json.dumps(bug.get('inputs', {}), indent=2)}
+{json.dumps(bug.get("inputs", {}), indent=2)}
 ```
 
 ### Confidence
-Claude encoding confidence: {bug.get('claude_confidence', 'N/A')}
+Claude encoding confidence: {bug.get("claude_confidence", "N/A")}
 
 ---
 *This issue was automatically generated by cosilico-validators based on multi-system consensus analysis.*
 """
-        console.print(Panel(
-            f"[bold]{title}[/bold]\n\n{body[:500]}...",
-            title=f"Issue for {bug['validator']}",
-            border_style="yellow" if dry_run else "green",
-        ))
+        console.print(
+            Panel(
+                f"[bold]{title}[/bold]\n\n{body[:500]}...",
+                title=f"Issue for {bug['validator']}",
+                border_style="yellow" if dry_run else "green",
+            )
+        )
 
         if not dry_run and repo:
             # TODO: Actually file the issue using GitHub API
@@ -342,15 +355,15 @@ def compare_aligned(year, output):
             var_result["variable"],
             f"[{match_color}]{match_pct:.1f}%[/{match_color}]",
             f"${var_result['mean_absolute_error']:,.0f}",
-            f"${var_result['cosilico_weighted_total']/1e9:.1f}B",
-            f"${var_result['policyengine_weighted_total']/1e9:.1f}B",
+            f"${var_result['cosilico_weighted_total'] / 1e9:.1f}B",
+            f"${var_result['policyengine_weighted_total'] / 1e9:.1f}B",
             f"[{diff_color}]{diff_b:+.1f}B[/{diff_color}]",
         )
 
     console.print(table)
 
     summary = dashboard["summary"]
-    console.print(f"\n[bold]Overall:[/bold] {summary['overall_match_rate']*100:.1f}% match rate")
+    console.print(f"\n[bold]Overall:[/bold] {summary['overall_match_rate'] * 100:.1f}% match rate")
     console.print(f"Records: {summary['total_records']:,}")
 
     if output:
@@ -411,7 +424,7 @@ def compare(year, tolerance, variables, output):
 
     # Summary stats
     summary = dashboard.get("summary", {})
-    console.print(f"\n[bold]Overall:[/bold] {summary.get('overall_match_rate', 0)*100:.1f}% match rate")
+    console.print(f"\n[bold]Overall:[/bold] {summary.get('overall_match_rate', 0) * 100:.1f}% match rate")
     console.print(f"Total records: {summary.get('total_records', 0):,}")
 
     # Save output
@@ -468,7 +481,7 @@ def dashboard(year, output):
     console.print(table)
 
     overall = data["overall"]
-    console.print(f"\n[bold]Overall:[/bold] {overall['matchRate']*100:.1f}% match rate")
+    console.print(f"\n[bold]Overall:[/bold] {overall['matchRate'] * 100:.1f}% match rate")
     console.print(f"Households: {overall['totalHouseholds']:,}")
     console.print(f"Mean Absolute Error: ${overall['meanAbsoluteError']:,.2f}")
 

@@ -69,8 +69,10 @@ class TestCompareRecords:
 
 class TestLoadPeValues:
     def test_load_values(self):
-        with patch("cosilico_validators.comparison.core.HAS_POLICYENGINE", True), \
-             patch("cosilico_validators.comparison.core.Microsimulation") as mock_sim:
+        with (
+            patch("cosilico_validators.comparison.core.HAS_POLICYENGINE", True),
+            patch("cosilico_validators.comparison.core.Microsimulation") as mock_sim,
+        ):
             mock_instance = MagicMock()
             mock_sim.return_value = mock_instance
             mock_instance.calculate.return_value = np.array([100.0, 200.0, 300.0])
@@ -80,8 +82,10 @@ class TestLoadPeValues:
             mock_instance.calculate.assert_called_with("income_tax", 2024)
 
     def test_load_values_with_ids(self):
-        with patch("cosilico_validators.comparison.core.HAS_POLICYENGINE", True), \
-             patch("cosilico_validators.comparison.core.Microsimulation") as mock_sim:
+        with (
+            patch("cosilico_validators.comparison.core.HAS_POLICYENGINE", True),
+            patch("cosilico_validators.comparison.core.Microsimulation") as mock_sim,
+        ):
             mock_instance = MagicMock()
             mock_sim.return_value = mock_instance
             mock_instance.calculate.side_effect = [
@@ -94,6 +98,7 @@ class TestLoadPeValues:
 
     def test_requires_policyengine(self):
         from cosilico_validators.comparison.core import HAS_POLICYENGINE
+
         if not HAS_POLICYENGINE:
             with pytest.raises(ImportError):
                 load_pe_values("eitc")
@@ -106,17 +111,26 @@ class TestLoadCosilicoValues:
         data_dir.mkdir(parents=True)
 
         import pandas as pd
-        mock_df = pd.DataFrame({
-            "cos_income_tax": [100.0, 200.0, 300.0],
-            "tax_unit_id": [1, 2, 3],
-        })
 
-        with patch("pathlib.Path.home", return_value=tmp_path), \
-             patch.dict("sys.modules", {
-                "tax_unit_builder": MagicMock(),
-                "cosilico_runner": MagicMock(),
-             }):
+        mock_df = pd.DataFrame(
+            {
+                "cos_income_tax": [100.0, 200.0, 300.0],
+                "tax_unit_id": [1, 2, 3],
+            }
+        )
+
+        with (
+            patch("pathlib.Path.home", return_value=tmp_path),
+            patch.dict(
+                "sys.modules",
+                {
+                    "tax_unit_builder": MagicMock(),
+                    "cosilico_runner": MagicMock(),
+                },
+            ),
+        ):
             import sys
+
             mock_builder = sys.modules["tax_unit_builder"]
             mock_runner = sys.modules["cosilico_runner"]
             mock_builder.load_and_build_tax_units.return_value = mock_df
@@ -126,8 +140,10 @@ class TestLoadCosilicoValues:
             assert len(result) == 3
 
     def test_missing_data_sources(self, tmp_path):
-        with patch("pathlib.Path.home", return_value=tmp_path), \
-             pytest.raises(ImportError, match="cosilico-data-sources not found"):
+        with (
+            patch("pathlib.Path.home", return_value=tmp_path),
+            pytest.raises(ImportError, match="cosilico-data-sources not found"),
+        ):
             load_cosilico_values("eitc")
 
     def test_load_values_with_ids(self, tmp_path):
@@ -136,17 +152,26 @@ class TestLoadCosilicoValues:
         data_dir.mkdir(parents=True)
 
         import pandas as pd
-        mock_df = pd.DataFrame({
-            "cos_income_tax": [100.0, 200.0, 300.0],
-            "tax_unit_id": [1, 2, 3],
-        })
 
-        with patch("pathlib.Path.home", return_value=tmp_path), \
-             patch.dict("sys.modules", {
-                "tax_unit_builder": MagicMock(),
-                "cosilico_runner": MagicMock(),
-             }):
+        mock_df = pd.DataFrame(
+            {
+                "cos_income_tax": [100.0, 200.0, 300.0],
+                "tax_unit_id": [1, 2, 3],
+            }
+        )
+
+        with (
+            patch("pathlib.Path.home", return_value=tmp_path),
+            patch.dict(
+                "sys.modules",
+                {
+                    "tax_unit_builder": MagicMock(),
+                    "cosilico_runner": MagicMock(),
+                },
+            ),
+        ):
             import sys
+
             mock_builder = sys.modules["tax_unit_builder"]
             mock_runner = sys.modules["cosilico_runner"]
             mock_builder.load_and_build_tax_units.return_value = mock_df
@@ -163,17 +188,26 @@ class TestLoadCosilicoValues:
         data_dir.mkdir(parents=True)
 
         import pandas as pd
-        mock_df = pd.DataFrame({
-            "cos_eitc": [100.0],
-            "tax_unit_id": [1],
-        })
 
-        with patch("pathlib.Path.home", return_value=tmp_path), \
-             patch.dict("sys.modules", {
-                "tax_unit_builder": MagicMock(),
-                "cosilico_runner": MagicMock(),
-             }):
+        mock_df = pd.DataFrame(
+            {
+                "cos_eitc": [100.0],
+                "tax_unit_id": [1],
+            }
+        )
+
+        with (
+            patch("pathlib.Path.home", return_value=tmp_path),
+            patch.dict(
+                "sys.modules",
+                {
+                    "tax_unit_builder": MagicMock(),
+                    "cosilico_runner": MagicMock(),
+                },
+            ),
+        ):
             import sys
+
             mock_builder = sys.modules["tax_unit_builder"]
             mock_runner = sys.modules["cosilico_runner"]
             mock_builder.load_and_build_tax_units.return_value = mock_df
@@ -185,8 +219,10 @@ class TestLoadCosilicoValues:
 
 class TestRunVariableComparison:
     def test_run_comparison(self):
-        with patch("cosilico_validators.comparison.core.load_pe_values") as mock_pe, \
-             patch("cosilico_validators.comparison.core.load_cosilico_values") as mock_cos:
+        with (
+            patch("cosilico_validators.comparison.core.load_pe_values") as mock_pe,
+            patch("cosilico_validators.comparison.core.load_cosilico_values") as mock_cos,
+        ):
             mock_pe.return_value = (np.array([100.0, 200.0, 300.0]), np.array([1, 2, 3]))
             mock_cos.return_value = (np.array([100.0, 200.0, 300.0]), np.array([1, 2, 3]))
 
@@ -199,10 +235,8 @@ class TestRunVariableComparison:
 class TestGenerateDashboardJson:
     def test_dashboard_structure(self):
         results = [
-            {"variable": "income_tax", "match_rate": 0.95,
-             "n_records": 30000, "mean_absolute_error": 50.0},
-            {"variable": "eitc", "match_rate": 0.99,
-             "n_records": 30000, "mean_absolute_error": 5.0},
+            {"variable": "income_tax", "match_rate": 0.95, "n_records": 30000, "mean_absolute_error": 50.0},
+            {"variable": "eitc", "match_rate": 0.99, "n_records": 30000, "mean_absolute_error": 5.0},
         ]
         dashboard = generate_dashboard_json(results, year=2024)
         assert "metadata" in dashboard
@@ -212,10 +246,8 @@ class TestGenerateDashboardJson:
 
     def test_dashboard_includes_summary(self):
         results = [
-            {"variable": "v1", "match_rate": 0.90, "n_records": 100,
-             "mean_absolute_error": 10.0},
-            {"variable": "v2", "match_rate": 0.80, "n_records": 100,
-             "mean_absolute_error": 20.0},
+            {"variable": "v1", "match_rate": 0.90, "n_records": 100, "mean_absolute_error": 10.0},
+            {"variable": "v2", "match_rate": 0.80, "n_records": 100, "mean_absolute_error": 20.0},
         ]
         dashboard = generate_dashboard_json(results, year=2024)
         assert "summary" in dashboard
@@ -227,8 +259,10 @@ class TestRunFullComparison:
     def test_run_full_default(self):
         with patch("cosilico_validators.comparison.core.run_variable_comparison") as mock_rv:
             mock_rv.return_value = {
-                "variable": "eitc", "match_rate": 0.95,
-                "n_records": 1000, "mean_absolute_error": 50,
+                "variable": "eitc",
+                "match_rate": 0.95,
+                "n_records": 1000,
+                "mean_absolute_error": 50,
             }
             result = run_full_comparison(year=2024)
             assert "variables" in result
@@ -237,15 +271,16 @@ class TestRunFullComparison:
     def test_run_full_with_specific_variables(self):
         with patch("cosilico_validators.comparison.core.run_variable_comparison") as mock_rv:
             mock_rv.return_value = {
-                "variable": "eitc", "match_rate": 0.95,
-                "n_records": 1000, "mean_absolute_error": 50,
+                "variable": "eitc",
+                "match_rate": 0.95,
+                "n_records": 1000,
+                "mean_absolute_error": 50,
             }
             result = run_full_comparison(variables=["eitc"], year=2024)
             assert len(result["variables"]) == 1
 
     def test_run_full_handles_error(self):
-        with patch("cosilico_validators.comparison.core.run_variable_comparison",
-                    side_effect=Exception("fail")):
+        with patch("cosilico_validators.comparison.core.run_variable_comparison", side_effect=Exception("fail")):
             result = run_full_comparison(year=2024)
             # Should handle errors gracefully
             assert "variables" in result
@@ -259,9 +294,7 @@ class TestAlignRecords:
         cos_ids = np.array([1, 2, 3])
         pe_values = np.array([100.0, 200.0, 300.0])
         pe_ids = np.array([1, 2, 3])
-        aligned_cos, aligned_pe, matched_ids = align_records(
-            cos_values, cos_ids, pe_values, pe_ids
-        )
+        aligned_cos, aligned_pe, matched_ids = align_records(cos_values, cos_ids, pe_values, pe_ids)
         assert len(aligned_cos) == 3
         assert len(aligned_pe) == 3
         np.testing.assert_array_equal(aligned_cos, cos_values)
@@ -271,9 +304,7 @@ class TestAlignRecords:
         cos_ids = np.array([1, 2, 3])
         pe_values = np.array([200.0, 300.0, 400.0])
         pe_ids = np.array([2, 3, 4])
-        aligned_cos, aligned_pe, matched_ids = align_records(
-            cos_values, cos_ids, pe_values, pe_ids
-        )
+        aligned_cos, aligned_pe, matched_ids = align_records(cos_values, cos_ids, pe_values, pe_ids)
         assert len(aligned_cos) == 2
         assert len(aligned_pe) == 2
         np.testing.assert_array_equal(matched_ids, [2, 3])

@@ -119,6 +119,7 @@ class TestCompareVariable:
         ds = _make_common_dataset(1000)
         pe_values = np.ones(ds.n_records) * 1000
         np.random.seed(42)
+
         def cos_func(dataset):
             return np.random.uniform(900, 1100, dataset.n_records)
 
@@ -133,6 +134,7 @@ class TestCompareVariable:
         ds = _make_common_dataset(1000)
         pe_values = np.ones(ds.n_records) * 1000
         cos_values = np.ones(ds.n_records) * 1000
+
         def cos_func(dataset, v=cos_values):
             return v
 
@@ -159,6 +161,7 @@ class TestCompareVariable:
     def test_result_has_values(self):
         ds = _make_common_dataset(100)
         pe_values = np.ones(ds.n_records) * 1000
+
         def cos_func(dataset):
             return np.ones(dataset.n_records) * 1000
 
@@ -182,6 +185,7 @@ class TestVarExists:
 class TestLoadCommonDataset:
     def test_requires_policyengine(self):
         from cosilico_validators.comparison.aligned import HAS_POLICYENGINE, load_common_dataset
+
         if not HAS_POLICYENGINE:
             with pytest.raises(ImportError):
                 load_common_dataset()
@@ -189,6 +193,7 @@ class TestLoadCommonDataset:
     def test_load_with_mocked_pe(self):
         """Test load_common_dataset with fully mocked PolicyEngine."""
         import sys
+
         mock_pe = MagicMock()
         mock_sim = MagicMock()
         mock_pe.Microsimulation.return_value = mock_sim
@@ -238,10 +243,13 @@ class TestLoadCommonDataset:
 
         mock_sim.calculate.side_effect = mock_calculate
 
-        with patch.dict(sys.modules, {"policyengine_us": mock_pe}), \
-             patch("cosilico_validators.comparison.aligned.HAS_POLICYENGINE", True), \
-             patch("cosilico_validators.comparison.aligned.Microsimulation", mock_pe.Microsimulation):
+        with (
+            patch.dict(sys.modules, {"policyengine_us": mock_pe}),
+            patch("cosilico_validators.comparison.aligned.HAS_POLICYENGINE", True),
+            patch("cosilico_validators.comparison.aligned.Microsimulation", mock_pe.Microsimulation),
+        ):
             from cosilico_validators.comparison.aligned import load_common_dataset
+
             ds = load_common_dataset(year=2024)
             assert ds.n_records == n_tax_units
             assert len(ds.weight) == n_tax_units
@@ -256,9 +264,11 @@ class TestLoadCommonDataset:
 class TestRunAlignedComparison:
     def test_requires_policyengine(self):
         from cosilico_validators.comparison.aligned import HAS_POLICYENGINE
+
         if not HAS_POLICYENGINE:
             # run_aligned_comparison calls load_common_dataset which needs PE
             from cosilico_validators.comparison.aligned import run_aligned_comparison
+
             with pytest.raises(ImportError):
                 run_aligned_comparison()
 
@@ -280,14 +290,21 @@ class TestRunAlignedComparison:
         mock_runner.calculate_income_tax = mock_tax_func
         mock_runner.PARAMS_2024 = {}
 
-        with patch.dict(sys.modules, {
-            "policyengine_us": mock_pe,
-            "cosilico_runner": mock_runner,
-            "pandas": MagicMock(),
-        }), patch("cosilico_validators.comparison.aligned.HAS_POLICYENGINE", True), \
-                 patch("cosilico_validators.comparison.aligned.Microsimulation", mock_pe.Microsimulation), \
-                 patch("cosilico_validators.comparison.aligned.load_common_dataset", return_value=mock_ds):
+        with (
+            patch.dict(
+                sys.modules,
+                {
+                    "policyengine_us": mock_pe,
+                    "cosilico_runner": mock_runner,
+                    "pandas": MagicMock(),
+                },
+            ),
+            patch("cosilico_validators.comparison.aligned.HAS_POLICYENGINE", True),
+            patch("cosilico_validators.comparison.aligned.Microsimulation", mock_pe.Microsimulation),
+            patch("cosilico_validators.comparison.aligned.load_common_dataset", return_value=mock_ds),
+        ):
             from cosilico_validators.comparison.aligned import run_aligned_comparison
+
             result = run_aligned_comparison(year=2024)
             assert "metadata" in result
             assert "summary" in result

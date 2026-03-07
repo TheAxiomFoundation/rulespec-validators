@@ -75,8 +75,7 @@ class TestLoadRacFile:
 
 
 class TestResultToSection:
-    def _make_result(self, variable="eitc", match_rate=0.95, mae=50.0,
-                     cos_total=60e9, pe_total=62e9, n=100):
+    def _make_result(self, variable="eitc", match_rate=0.95, mae=50.0, cos_total=60e9, pe_total=62e9, n=100):
         return ComparisonResult(
             variable=variable,
             match_rate=match_rate,
@@ -100,8 +99,7 @@ class TestResultToSection:
         assert "Cosilico total" in section["notes"]
 
     def test_unimplemented_variable(self):
-        result = self._make_result(variable="ctc", match_rate=0.0, mae=0.0,
-                                   cos_total=0.0, pe_total=50e9)
+        result = self._make_result(variable="ctc", match_rate=0.0, mae=0.0, cos_total=0.0, pe_total=50e9)
         meta = {"section": "26/24", "title": "CTC"}
         section = result_to_section(result, 100000, meta, implemented=False)
         assert section["implemented"] is False
@@ -163,13 +161,18 @@ class TestLoadCosilicoEngine:
         mock_ve = MagicMock()
         mock_parser = MagicMock()
         mock_dr = MagicMock()
-        with patch("cosilico_validators.dashboard_export.Path.home") as mock_home, \
-             patch.dict("sys.modules", {
-                "cosilico": MagicMock(),
-                "cosilico.vectorized_executor": MagicMock(VectorizedExecutor=mock_ve),
-                "cosilico.dsl_parser": MagicMock(parse_dsl=mock_parser),
-                "cosilico.dependency_resolver": MagicMock(DependencyResolver=mock_dr),
-             }):
+        with (
+            patch("cosilico_validators.dashboard_export.Path.home") as mock_home,
+            patch.dict(
+                "sys.modules",
+                {
+                    "cosilico": MagicMock(),
+                    "cosilico.vectorized_executor": MagicMock(VectorizedExecutor=mock_ve),
+                    "cosilico.dsl_parser": MagicMock(parse_dsl=mock_parser),
+                    "cosilico.dependency_resolver": MagicMock(DependencyResolver=mock_dr),
+                },
+            ),
+        ):
             mock_home.return_value = Path("/nonexistent")
             ve, parser, dr = load_cosilico_engine()
             assert ve is mock_ve
@@ -248,11 +251,13 @@ class TestRunExport:
 
         output_path = tmp_path / "output.json"
 
-        with patch.dict("sys.modules", {"policyengine_us": mock_pe_module}), \
-             patch("cosilico_validators.dashboard_export.load_common_dataset", return_value=mock_dataset), \
-             patch("cosilico_validators.dashboard_export.compare_variable", return_value=mock_result), \
-             patch("cosilico_validators.dashboard_export.load_cosilico_engine", side_effect=ImportError("no engine")), \
-             patch("cosilico_validators.dashboard_export.load_rac_file", return_value=None):
+        with (
+            patch.dict("sys.modules", {"policyengine_us": mock_pe_module}),
+            patch("cosilico_validators.dashboard_export.load_common_dataset", return_value=mock_dataset),
+            patch("cosilico_validators.dashboard_export.compare_variable", return_value=mock_result),
+            patch("cosilico_validators.dashboard_export.load_cosilico_engine", side_effect=ImportError("no engine")),
+            patch("cosilico_validators.dashboard_export.load_rac_file", return_value=None),
+        ):
             data = run_export(year=2024, output_path=output_path)
 
             assert "sections" in data
@@ -328,14 +333,18 @@ class TestRunExport:
         mock_parser = MagicMock()
         mock_dep_resolver_cls = MagicMock()
 
-        with patch.dict("sys.modules", {"policyengine_us": mock_pe_module}), \
-             patch("cosilico_validators.dashboard_export.load_common_dataset", return_value=mock_dataset), \
-             patch("cosilico_validators.dashboard_export.compare_variable", return_value=mock_result), \
-             patch("cosilico_validators.dashboard_export.load_cosilico_engine",
-                    return_value=(mock_executor_cls, mock_parser, mock_dep_resolver_cls)), \
-             patch("cosilico_validators.dashboard_export.load_rac_file", return_value="mock rac code"), \
-             patch("pathlib.Path.exists", return_value=True), \
-             patch("pathlib.Path.read_text", return_value="mock rac code"):
+        with (
+            patch.dict("sys.modules", {"policyengine_us": mock_pe_module}),
+            patch("cosilico_validators.dashboard_export.load_common_dataset", return_value=mock_dataset),
+            patch("cosilico_validators.dashboard_export.compare_variable", return_value=mock_result),
+            patch(
+                "cosilico_validators.dashboard_export.load_cosilico_engine",
+                return_value=(mock_executor_cls, mock_parser, mock_dep_resolver_cls),
+            ),
+            patch("cosilico_validators.dashboard_export.load_rac_file", return_value="mock rac code"),
+            patch("pathlib.Path.exists", return_value=True),
+            patch("pathlib.Path.read_text", return_value="mock rac code"),
+        ):
             data = run_export(year=2024)
 
             assert "sections" in data
@@ -355,9 +364,11 @@ class TestRunExport:
         mock_pe_module = MagicMock()
         mock_pe_module.Microsimulation = mock_microsim_cls
 
-        with patch.dict("sys.modules", {"policyengine_us": mock_pe_module}), \
-             patch("cosilico_validators.dashboard_export.load_common_dataset", return_value=mock_dataset), \
-             patch("cosilico_validators.dashboard_export.load_cosilico_engine", side_effect=ImportError("no engine")):
+        with (
+            patch.dict("sys.modules", {"policyengine_us": mock_pe_module}),
+            patch("cosilico_validators.dashboard_export.load_common_dataset", return_value=mock_dataset),
+            patch("cosilico_validators.dashboard_export.load_cosilico_engine", side_effect=ImportError("no engine")),
+        ):
             data = run_export(year=2024)
             # Should still return valid structure even with errors
             assert "sections" in data
@@ -387,11 +398,13 @@ class TestRunExport:
         mock_pe_module = MagicMock()
         mock_pe_module.Microsimulation = mock_microsim_cls
 
-        with patch.dict("sys.modules", {"policyengine_us": mock_pe_module}), \
-             patch("cosilico_validators.dashboard_export.load_common_dataset", return_value=mock_dataset), \
-             patch("cosilico_validators.dashboard_export.compare_variable", return_value=mock_result), \
-             patch("cosilico_validators.dashboard_export.load_cosilico_engine", side_effect=ImportError("no engine")), \
-             patch("cosilico_validators.dashboard_export.load_rac_file", return_value=None):
+        with (
+            patch.dict("sys.modules", {"policyengine_us": mock_pe_module}),
+            patch("cosilico_validators.dashboard_export.load_common_dataset", return_value=mock_dataset),
+            patch("cosilico_validators.dashboard_export.compare_variable", return_value=mock_result),
+            patch("cosilico_validators.dashboard_export.load_cosilico_engine", side_effect=ImportError("no engine")),
+            patch("cosilico_validators.dashboard_export.load_rac_file", return_value=None),
+        ):
             data = run_export(year=2024)
             assert isinstance(data, dict)
 
@@ -445,9 +458,14 @@ class TestRunExportEngineBranches:
         mock_dataset = self._make_mock_dataset(n)
 
         mock_result = ComparisonResult(
-            variable="eitc", match_rate=0.95, mean_absolute_error=50.0,
-            n_records=n, cosilico_total=60e9, policyengine_total=62e9,
-            cosilico_values=np.zeros(n), policyengine_values=np.zeros(n),
+            variable="eitc",
+            match_rate=0.95,
+            mean_absolute_error=50.0,
+            n_records=n,
+            cosilico_total=60e9,
+            policyengine_total=62e9,
+            cosilico_values=np.zeros(n),
+            policyengine_values=np.zeros(n),
             error_percentiles={"p50": 10, "p90": 50, "p95": 100, "p99": 500, "max": 1000},
         )
 
@@ -481,13 +499,17 @@ class TestRunExportEngineBranches:
         mock_rac_path.exists.return_value = True
         mock_rac_path.read_text.return_value = "mock rac code"
 
-        with patch.dict("sys.modules", {"policyengine_us": mock_pe_module}), \
-             patch("cosilico_validators.dashboard_export.load_common_dataset", return_value=mock_dataset), \
-             patch("cosilico_validators.dashboard_export.compare_variable", return_value=mock_result), \
-             patch("cosilico_validators.dashboard_export.load_cosilico_engine",
-                    return_value=(mock_executor_cls, MagicMock(), mock_dep_resolver_cls)), \
-             patch("cosilico_validators.dashboard_export.load_rac_file", return_value="mock rac"), \
-             patch("cosilico_validators.dashboard_export.Path") as mock_path_cls:
+        with (
+            patch.dict("sys.modules", {"policyengine_us": mock_pe_module}),
+            patch("cosilico_validators.dashboard_export.load_common_dataset", return_value=mock_dataset),
+            patch("cosilico_validators.dashboard_export.compare_variable", return_value=mock_result),
+            patch(
+                "cosilico_validators.dashboard_export.load_cosilico_engine",
+                return_value=(mock_executor_cls, MagicMock(), mock_dep_resolver_cls),
+            ),
+            patch("cosilico_validators.dashboard_export.load_rac_file", return_value="mock rac"),
+            patch("cosilico_validators.dashboard_export.Path") as mock_path_cls,
+        ):
             # Make Path.home() / ... / "statute" / "26" / "32.rac" all return mock_rac_path
             mock_path_cls.home.return_value.__truediv__ = MagicMock(return_value=mock_rac_path)
             mock_path_cls.__truediv__ = MagicMock(return_value=mock_rac_path)
@@ -517,13 +539,18 @@ class TestRunExportEngineBranches:
         mock_ve = MagicMock()
         mock_parser = MagicMock()
         mock_dr = MagicMock()
-        with patch("cosilico_validators.dashboard_export.Path.home", return_value=tmp_path), \
-             patch.dict("sys.modules", {
-                "cosilico": MagicMock(),
-                "cosilico.vectorized_executor": MagicMock(VectorizedExecutor=mock_ve),
-                "cosilico.dsl_parser": MagicMock(parse_dsl=mock_parser),
-                "cosilico.dependency_resolver": MagicMock(DependencyResolver=mock_dr),
-             }):
+        with (
+            patch("cosilico_validators.dashboard_export.Path.home", return_value=tmp_path),
+            patch.dict(
+                "sys.modules",
+                {
+                    "cosilico": MagicMock(),
+                    "cosilico.vectorized_executor": MagicMock(VectorizedExecutor=mock_ve),
+                    "cosilico.dsl_parser": MagicMock(parse_dsl=mock_parser),
+                    "cosilico.dependency_resolver": MagicMock(DependencyResolver=mock_dr),
+                },
+            ),
+        ):
             ve, parser, dr = load_cosilico_engine()
             assert ve is mock_ve
 
@@ -531,6 +558,7 @@ class TestRunExportEngineBranches:
 class TestMainCommand:
     def test_main_invokable(self):
         from click.testing import CliRunner
+
         runner = CliRunner()
         with patch("cosilico_validators.dashboard_export.run_export") as mock_run:
             mock_run.return_value = {
@@ -542,6 +570,7 @@ class TestMainCommand:
 
     def test_main_with_output(self, tmp_path):
         from click.testing import CliRunner
+
         runner = CliRunner()
         output_path = str(tmp_path / "output.json")
         with patch("cosilico_validators.dashboard_export.run_export") as mock_run:

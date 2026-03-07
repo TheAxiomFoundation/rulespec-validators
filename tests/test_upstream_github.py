@@ -62,9 +62,15 @@ class TestIssueReport:
 
     def test_to_markdown_no_citation(self):
         report = IssueReport(
-            validator="PE", test_case="test", variable="eitc",
-            expected=100, actual=200, difference=100,
-            citation=None, inputs={}, claude_confidence=None,
+            validator="PE",
+            test_case="test",
+            variable="eitc",
+            expected=100,
+            actual=200,
+            difference=100,
+            citation=None,
+            inputs={},
+            claude_confidence=None,
         )
         title, body = report.to_markdown()
         assert "Not provided" in body
@@ -131,9 +137,15 @@ class TestGitHubIssueManager:
     def test_file_issue_dry_run(self):
         manager = GitHubIssueManager()
         report = IssueReport(
-            validator="PolicyEngine", test_case="test", variable="eitc",
-            expected=100, actual=200, difference=100,
-            citation="26 USC 32", inputs={}, claude_confidence=0.95,
+            validator="PolicyEngine",
+            test_case="test",
+            variable="eitc",
+            expected=100,
+            actual=200,
+            difference=100,
+            citation="26 USC 32",
+            inputs={},
+            claude_confidence=0.95,
         )
         result = manager.file_issue(report, dry_run=True)
         assert result["dry_run"] is True
@@ -142,9 +154,15 @@ class TestGitHubIssueManager:
     def test_file_issue_no_repo_for_validator(self):
         manager = GitHubIssueManager()
         report = IssueReport(
-            validator="TAXSIM", test_case="test", variable="eitc",
-            expected=100, actual=200, difference=100,
-            citation=None, inputs={}, claude_confidence=0.95,
+            validator="TAXSIM",
+            test_case="test",
+            variable="eitc",
+            expected=100,
+            actual=200,
+            difference=100,
+            citation=None,
+            inputs={},
+            claude_confidence=0.95,
         )
         result = manager.file_issue(report)
         assert result["skipped"] is True
@@ -152,9 +170,15 @@ class TestGitHubIssueManager:
     def test_file_issue_no_token(self):
         manager = GitHubIssueManager()
         report = IssueReport(
-            validator="PolicyEngine", test_case="test", variable="eitc",
-            expected=100, actual=200, difference=100,
-            citation=None, inputs={}, claude_confidence=0.95,
+            validator="PolicyEngine",
+            test_case="test",
+            variable="eitc",
+            expected=100,
+            actual=200,
+            difference=100,
+            citation=None,
+            inputs={},
+            claude_confidence=0.95,
         )
         result = manager.file_issue(report)
         assert result["skipped"] is True
@@ -163,9 +187,15 @@ class TestGitHubIssueManager:
     def test_file_issue_with_override_repo(self):
         manager = GitHubIssueManager()
         report = IssueReport(
-            validator="TAXSIM", test_case="test", variable="eitc",
-            expected=100, actual=200, difference=100,
-            citation=None, inputs={}, claude_confidence=0.95,
+            validator="TAXSIM",
+            test_case="test",
+            variable="eitc",
+            expected=100,
+            actual=200,
+            difference=100,
+            citation=None,
+            inputs={},
+            claude_confidence=0.95,
         )
         result = manager.file_issue(report, repo="test/repo", dry_run=True)
         assert result["repo"] == "test/repo"
@@ -173,9 +203,15 @@ class TestGitHubIssueManager:
     def test_file_issue_success(self):
         manager = GitHubIssueManager(token="test_token")
         report = IssueReport(
-            validator="PolicyEngine", test_case="test", variable="eitc",
-            expected=100, actual=200, difference=100,
-            citation=None, inputs={}, claude_confidence=0.95,
+            validator="PolicyEngine",
+            test_case="test",
+            variable="eitc",
+            expected=100,
+            actual=200,
+            difference=100,
+            citation=None,
+            inputs={},
+            claude_confidence=0.95,
         )
         mock_dup_response = MagicMock()
         mock_dup_response.status_code = 200
@@ -184,11 +220,14 @@ class TestGitHubIssueManager:
         mock_create_response = MagicMock()
         mock_create_response.status_code = 201
         mock_create_response.json.return_value = {
-            "number": 1, "html_url": "https://github.com/test/1",
+            "number": 1,
+            "html_url": "https://github.com/test/1",
         }
 
-        with patch("requests.get", return_value=mock_dup_response), \
-             patch("requests.post", return_value=mock_create_response):
+        with (
+            patch("requests.get", return_value=mock_dup_response),
+            patch("requests.post", return_value=mock_create_response),
+        ):
             result = manager.file_issue(report)
             assert result["number"] == 1
             assert len(manager.filed_issues) == 1
@@ -196,9 +235,15 @@ class TestGitHubIssueManager:
     def test_file_issue_duplicate(self):
         manager = GitHubIssueManager(token="test_token")
         report = IssueReport(
-            validator="PolicyEngine", test_case="test", variable="eitc",
-            expected=100, actual=200, difference=100,
-            citation=None, inputs={}, claude_confidence=0.95,
+            validator="PolicyEngine",
+            test_case="test",
+            variable="eitc",
+            expected=100,
+            actual=200,
+            difference=100,
+            citation=None,
+            inputs={},
+            claude_confidence=0.95,
         )
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -214,9 +259,15 @@ class TestGitHubIssueManager:
     def test_file_issue_api_failure(self):
         manager = GitHubIssueManager(token="test_token")
         report = IssueReport(
-            validator="PolicyEngine", test_case="test", variable="eitc",
-            expected=100, actual=200, difference=100,
-            citation=None, inputs={}, claude_confidence=0.95,
+            validator="PolicyEngine",
+            test_case="test",
+            variable="eitc",
+            expected=100,
+            actual=200,
+            difference=100,
+            citation=None,
+            inputs={},
+            claude_confidence=0.95,
         )
         mock_dup = MagicMock()
         mock_dup.status_code = 200
@@ -226,18 +277,29 @@ class TestGitHubIssueManager:
         mock_create.status_code = 422
         mock_create.text = "Validation Failed"
 
-        with patch("requests.get", return_value=mock_dup), \
-             patch("requests.post", return_value=mock_create):
+        with patch("requests.get", return_value=mock_dup), patch("requests.post", return_value=mock_create):
             result = manager.file_issue(report)
             assert "error" in result
 
     def test_file_all_bugs(self):
         manager = GitHubIssueManager()
         bugs = [
-            {"validator": "PolicyEngine", "test_case": "t1", "expected": 100,
-             "actual": 200, "difference": 100, "claude_confidence": 0.95},
-            {"validator": "PolicyEngine", "test_case": "t2", "expected": 300,
-             "actual": 400, "difference": 100, "claude_confidence": 0.5},
+            {
+                "validator": "PolicyEngine",
+                "test_case": "t1",
+                "expected": 100,
+                "actual": 200,
+                "difference": 100,
+                "claude_confidence": 0.95,
+            },
+            {
+                "validator": "PolicyEngine",
+                "test_case": "t2",
+                "expected": 300,
+                "actual": 400,
+                "difference": 100,
+                "claude_confidence": 0.5,
+            },
         ]
         results = manager.file_all_bugs(bugs, dry_run=True)
         assert len(results) == 2
@@ -248,8 +310,14 @@ class TestGitHubIssueManager:
     def test_file_all_bugs_custom_threshold(self):
         manager = GitHubIssueManager()
         bugs = [
-            {"validator": "PolicyEngine", "test_case": "t1", "expected": 100,
-             "actual": 200, "difference": 100, "claude_confidence": 0.5},
+            {
+                "validator": "PolicyEngine",
+                "test_case": "t1",
+                "expected": 100,
+                "actual": 200,
+                "difference": 100,
+                "claude_confidence": 0.5,
+            },
         ]
         results = manager.file_all_bugs(bugs, dry_run=True, confidence_threshold=0.3)
         assert len(results) == 1

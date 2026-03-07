@@ -24,13 +24,11 @@ class TestResolvePath:
             assert v.tax_simulator_path == tmp_path
 
     def test_provided_path_invalid(self, tmp_path):
-        with patch.object(YaleTaxValidator, "_check_r_available"), \
-             pytest.raises(FileNotFoundError, match="not found"):
+        with patch.object(YaleTaxValidator, "_check_r_available"), pytest.raises(FileNotFoundError, match="not found"):
             YaleTaxValidator(tax_simulator_path=tmp_path)
 
     def test_search_paths_not_found(self):
-        with patch.object(YaleTaxValidator, "_check_r_available"), \
-             pytest.raises(FileNotFoundError, match="not found"):
+        with patch.object(YaleTaxValidator, "_check_r_available"), pytest.raises(FileNotFoundError, match="not found"):
             YaleTaxValidator()
 
     def test_found_in_search_paths(self, tmp_path):
@@ -40,8 +38,7 @@ class TestResolvePath:
         (sim_path / "src").mkdir(parents=True)
         (sim_path / "src" / "main.R").write_text("# R code")
 
-        with patch.object(YaleTaxValidator, "_check_r_available"), \
-             patch("pathlib.Path.home", return_value=tmp_path):
+        with patch.object(YaleTaxValidator, "_check_r_available"), patch("pathlib.Path.home", return_value=tmp_path):
             v = YaleTaxValidator()
             assert v.tax_simulator_path == sim_path
 
@@ -59,8 +56,10 @@ class TestCheckRAvailable:
     def test_r_not_installed(self, tmp_path):
         (tmp_path / "src").mkdir()
         (tmp_path / "src" / "main.R").write_text("# R code")
-        with patch("subprocess.run", side_effect=FileNotFoundError("Rscript not found")), \
-             pytest.raises(RuntimeError, match="Rscript not found"):
+        with (
+            patch("subprocess.run", side_effect=FileNotFoundError("Rscript not found")),
+            pytest.raises(RuntimeError, match="Rscript not found"),
+        ):
             YaleTaxValidator(tax_simulator_path=tmp_path)
 
     def test_r_nonzero_exit(self, tmp_path):
@@ -75,8 +74,10 @@ class TestCheckRAvailable:
 class TestCreateTaxUnitInput:
     @pytest.fixture
     def validator(self):
-        with patch.object(YaleTaxValidator, "_resolve_path") as mock_path, \
-             patch.object(YaleTaxValidator, "_check_r_available"):
+        with (
+            patch.object(YaleTaxValidator, "_resolve_path") as mock_path,
+            patch.object(YaleTaxValidator, "_check_r_available"),
+        ):
             mock_path.return_value = Path("/mock/Tax-Simulator")
             return YaleTaxValidator()
 
@@ -139,8 +140,10 @@ class TestCreateTaxUnitInput:
 class TestCreateRunscript:
     @pytest.fixture
     def validator(self):
-        with patch.object(YaleTaxValidator, "_resolve_path") as mock_path, \
-             patch.object(YaleTaxValidator, "_check_r_available"):
+        with (
+            patch.object(YaleTaxValidator, "_resolve_path") as mock_path,
+            patch.object(YaleTaxValidator, "_check_r_available"),
+        ):
             mock_path.return_value = Path("/mock/Tax-Simulator")
             return YaleTaxValidator()
 
@@ -160,20 +163,21 @@ class TestCreateRunscript:
 class TestRunSimulator:
     @pytest.fixture
     def validator(self):
-        with patch.object(YaleTaxValidator, "_resolve_path") as mock_path, \
-             patch.object(YaleTaxValidator, "_check_r_available"):
+        with (
+            patch.object(YaleTaxValidator, "_resolve_path") as mock_path,
+            patch.object(YaleTaxValidator, "_check_r_available"),
+        ):
             mock_path.return_value = Path("/mock/Tax-Simulator")
             return YaleTaxValidator()
 
     def test_success(self, validator, tmp_path):
         mock_result = MagicMock()
         mock_result.returncode = 0
-        with patch("subprocess.run", return_value=mock_result), \
-             patch.object(validator, "_parse_output", return_value={"eitc": 500.0}):
-            result = validator._run_simulator(
-                tmp_path / "input.csv", tmp_path / "runscript.csv",
-                tmp_path, 2024
-            )
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch.object(validator, "_parse_output", return_value={"eitc": 500.0}),
+        ):
+            result = validator._run_simulator(tmp_path / "input.csv", tmp_path / "runscript.csv", tmp_path, 2024)
             assert result == {"eitc": 500.0}
 
     def test_failure(self, validator, tmp_path):
@@ -181,28 +185,26 @@ class TestRunSimulator:
         mock_result.returncode = 1
         mock_result.stdout = "some output"
         mock_result.stderr = "some error"
-        with patch("subprocess.run", return_value=mock_result), \
-             pytest.raises(RuntimeError, match="failed with code"):
-            validator._run_simulator(
-                tmp_path / "input.csv", tmp_path / "runscript.csv",
-                tmp_path, 2024
-            )
+        with patch("subprocess.run", return_value=mock_result), pytest.raises(RuntimeError, match="failed with code"):
+            validator._run_simulator(tmp_path / "input.csv", tmp_path / "runscript.csv", tmp_path, 2024)
 
     def test_timeout(self, validator, tmp_path):
         import subprocess
-        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("Rscript", 120)), \
-             pytest.raises(RuntimeError, match="timed out"):
-            validator._run_simulator(
-                tmp_path / "input.csv", tmp_path / "runscript.csv",
-                tmp_path, 2024
-            )
+
+        with (
+            patch("subprocess.run", side_effect=subprocess.TimeoutExpired("Rscript", 120)),
+            pytest.raises(RuntimeError, match="timed out"),
+        ):
+            validator._run_simulator(tmp_path / "input.csv", tmp_path / "runscript.csv", tmp_path, 2024)
 
 
 class TestParseOutput:
     @pytest.fixture
     def validator(self):
-        with patch.object(YaleTaxValidator, "_resolve_path") as mock_path, \
-             patch.object(YaleTaxValidator, "_check_r_available"):
+        with (
+            patch.object(YaleTaxValidator, "_resolve_path") as mock_path,
+            patch.object(YaleTaxValidator, "_check_r_available"),
+        ):
             mock_path.return_value = Path("/mock/Tax-Simulator")
             return YaleTaxValidator()
 
@@ -234,8 +236,10 @@ class TestParseOutput:
 class TestParseCsvOutput:
     @pytest.fixture
     def validator(self):
-        with patch.object(YaleTaxValidator, "_resolve_path") as mock_path, \
-             patch.object(YaleTaxValidator, "_check_r_available"):
+        with (
+            patch.object(YaleTaxValidator, "_resolve_path") as mock_path,
+            patch.object(YaleTaxValidator, "_check_r_available"),
+        ):
             mock_path.return_value = Path("/mock/Tax-Simulator")
             return YaleTaxValidator()
 
@@ -259,8 +263,10 @@ class TestParseCsvOutput:
 class TestValidateComplete:
     @pytest.fixture
     def validator(self):
-        with patch.object(YaleTaxValidator, "_resolve_path") as mock_path, \
-             patch.object(YaleTaxValidator, "_check_r_available"):
+        with (
+            patch.object(YaleTaxValidator, "_resolve_path") as mock_path,
+            patch.object(YaleTaxValidator, "_check_r_available"),
+        ):
             mock_path.return_value = Path("/mock/Tax-Simulator")
             return YaleTaxValidator()
 
@@ -279,8 +285,7 @@ class TestValidateComplete:
             assert "Unexpected error" in result.error
 
     def test_file_not_found_error(self, validator):
-        with patch.object(validator, "_run_simulator",
-                          side_effect=FileNotFoundError("not found")):
+        with patch.object(validator, "_run_simulator", side_effect=FileNotFoundError("not found")):
             tc = TestCase(name="test", inputs={"earned_income": 30000}, expected={})
             result = validator.validate(tc, "eitc", 2024)
             assert not result.success

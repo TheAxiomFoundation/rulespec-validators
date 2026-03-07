@@ -47,8 +47,10 @@ class TestFilingStatusMapping:
     @pytest.fixture
     def validator_with_mocks(self):
         """Create validator with mocked dependencies."""
-        with patch.object(YaleTaxValidator, '_resolve_path') as mock_path, \
-             patch.object(YaleTaxValidator, '_check_r_available'):
+        with (
+            patch.object(YaleTaxValidator, "_resolve_path") as mock_path,
+            patch.object(YaleTaxValidator, "_check_r_available"),
+        ):
             mock_path.return_value = Path("/mock/Tax-Simulator")
             validator = YaleTaxValidator()
             return validator
@@ -82,8 +84,10 @@ class TestSupportsVariable:
     @pytest.fixture
     def validator_with_mocks(self):
         """Create validator with mocked dependencies."""
-        with patch.object(YaleTaxValidator, '_resolve_path') as mock_path, \
-             patch.object(YaleTaxValidator, '_check_r_available'):
+        with (
+            patch.object(YaleTaxValidator, "_resolve_path") as mock_path,
+            patch.object(YaleTaxValidator, "_check_r_available"),
+        ):
             mock_path.return_value = Path("/mock/Tax-Simulator")
             validator = YaleTaxValidator()
             return validator
@@ -129,8 +133,10 @@ class TestValidateWithMocks:
     @pytest.fixture
     def validator_with_mocks(self):
         """Create validator with mocked dependencies."""
-        with patch.object(YaleTaxValidator, '_resolve_path') as mock_path, \
-             patch.object(YaleTaxValidator, '_check_r_available'):
+        with (
+            patch.object(YaleTaxValidator, "_resolve_path") as mock_path,
+            patch.object(YaleTaxValidator, "_check_r_available"),
+        ):
             mock_path.return_value = Path("/mock/Tax-Simulator")
             validator = YaleTaxValidator()
             return validator
@@ -147,7 +153,7 @@ class TestValidateWithMocks:
         assert not result.success
         assert "not supported" in result.error.lower()
 
-    @patch.object(YaleTaxValidator, '_run_simulator')
+    @patch.object(YaleTaxValidator, "_run_simulator")
     def test_successful_validation(self, mock_run, validator_with_mocks):
         """Test successful validation with mocked simulator."""
         mock_run.return_value = {
@@ -167,7 +173,7 @@ class TestValidateWithMocks:
         assert result.calculated_value == 1502.0
         assert result.validator_name == "Yale Tax-Simulator"
 
-    @patch.object(YaleTaxValidator, '_run_simulator')
+    @patch.object(YaleTaxValidator, "_run_simulator")
     def test_variable_not_in_output(self, mock_run, validator_with_mocks):
         """Test when requested variable is not in output."""
         mock_run.return_value = {
@@ -192,8 +198,10 @@ class TestTaxUnitInputCreation:
     @pytest.fixture
     def validator_with_mocks(self):
         """Create validator with mocked dependencies."""
-        with patch.object(YaleTaxValidator, '_resolve_path') as mock_path, \
-             patch.object(YaleTaxValidator, '_check_r_available'):
+        with (
+            patch.object(YaleTaxValidator, "_resolve_path") as mock_path,
+            patch.object(YaleTaxValidator, "_check_r_available"),
+        ):
             mock_path.return_value = Path("/mock/Tax-Simulator")
             validator = YaleTaxValidator()
             return validator
@@ -213,9 +221,7 @@ class TestTaxUnitInputCreation:
             expected={"eitc": 0},
         )
 
-        input_file = validator_with_mocks._create_tax_unit_input(
-            test_case, 2024, tmp_path
-        )
+        input_file = validator_with_mocks._create_tax_unit_input(test_case, 2024, tmp_path)
 
         with open(input_file) as f:
             reader = csv.DictReader(f)

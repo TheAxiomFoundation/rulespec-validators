@@ -10,6 +10,7 @@ import numpy as np
 
 try:
     from policyengine_us import Microsimulation  # pragma: no cover
+
     HAS_POLICYENGINE = True  # pragma: no cover
 except ImportError:
     HAS_POLICYENGINE = False
@@ -151,57 +152,98 @@ def load_common_dataset(year: int = 2024) -> CommonDataset:
         weight=calc("tax_unit_weight"),
         is_joint=calc("tax_unit_is_joint"),
         filing_status=filing_status,
-
         # Income (aligned with PE's irs_gross_income sources)
         earned_income=calc("tax_unit_earned_income"),
         wages=aggregate_to_tax_unit(calc("irs_employment_income")),  # W-2 income only
-        self_employment_income=aggregate_to_tax_unit(calc("self_employment_income")) if _var_exists(sim, "self_employment_income", year) else np.zeros_like(tax_unit_id, dtype=float),
-        partnership_s_corp_income=calc("tax_unit_partnership_s_corp_income") if _var_exists(sim, "tax_unit_partnership_s_corp_income", year) else np.zeros_like(tax_unit_id, dtype=float),
-        farm_income=aggregate_to_tax_unit(calc("farm_income")) if _var_exists(sim, "farm_income", year) else np.zeros_like(tax_unit_id, dtype=float),
+        self_employment_income=aggregate_to_tax_unit(calc("self_employment_income"))
+        if _var_exists(sim, "self_employment_income", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        partnership_s_corp_income=calc("tax_unit_partnership_s_corp_income")
+        if _var_exists(sim, "tax_unit_partnership_s_corp_income", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        farm_income=aggregate_to_tax_unit(calc("farm_income"))
+        if _var_exists(sim, "farm_income", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
         # Aggregate Person-level income to TaxUnit level
-        interest_income=aggregate_to_tax_unit(calc("taxable_interest_income")) if _var_exists(sim, "taxable_interest_income", year) else np.zeros_like(tax_unit_id, dtype=float),
-        dividend_income=aggregate_to_tax_unit(calc("dividend_income")) if _var_exists(sim, "dividend_income", year) else np.zeros_like(tax_unit_id, dtype=float),
-        capital_gains=aggregate_to_tax_unit(calc("capital_gains")) if _var_exists(sim, "capital_gains", year) else np.zeros_like(tax_unit_id, dtype=float),
-        rental_income=aggregate_to_tax_unit(calc("rental_income")) if _var_exists(sim, "rental_income", year) else np.zeros_like(tax_unit_id, dtype=float),
-        taxable_social_security=calc("tax_unit_taxable_social_security") if _var_exists(sim, "tax_unit_taxable_social_security", year) else np.zeros_like(tax_unit_id, dtype=float),
-        pension_income=aggregate_to_tax_unit(calc("taxable_pension_income")) if _var_exists(sim, "taxable_pension_income", year) else np.zeros_like(tax_unit_id, dtype=float),
-        taxable_unemployment=aggregate_to_tax_unit(calc("taxable_unemployment_compensation")) if _var_exists(sim, "taxable_unemployment_compensation", year) else np.zeros_like(tax_unit_id, dtype=float),
-        retirement_distributions=aggregate_to_tax_unit(calc("taxable_retirement_distributions")) if _var_exists(sim, "taxable_retirement_distributions", year) else np.zeros_like(tax_unit_id, dtype=float),
-        miscellaneous_income=aggregate_to_tax_unit(calc("miscellaneous_income")) if _var_exists(sim, "miscellaneous_income", year) else np.zeros_like(tax_unit_id, dtype=float),
+        interest_income=aggregate_to_tax_unit(calc("taxable_interest_income"))
+        if _var_exists(sim, "taxable_interest_income", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        dividend_income=aggregate_to_tax_unit(calc("dividend_income"))
+        if _var_exists(sim, "dividend_income", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        capital_gains=aggregate_to_tax_unit(calc("capital_gains"))
+        if _var_exists(sim, "capital_gains", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        rental_income=aggregate_to_tax_unit(calc("rental_income"))
+        if _var_exists(sim, "rental_income", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        taxable_social_security=calc("tax_unit_taxable_social_security")
+        if _var_exists(sim, "tax_unit_taxable_social_security", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        pension_income=aggregate_to_tax_unit(calc("taxable_pension_income"))
+        if _var_exists(sim, "taxable_pension_income", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        taxable_unemployment=aggregate_to_tax_unit(calc("taxable_unemployment_compensation"))
+        if _var_exists(sim, "taxable_unemployment_compensation", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        retirement_distributions=aggregate_to_tax_unit(calc("taxable_retirement_distributions"))
+        if _var_exists(sim, "taxable_retirement_distributions", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        miscellaneous_income=aggregate_to_tax_unit(calc("miscellaneous_income"))
+        if _var_exists(sim, "miscellaneous_income", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
         other_income=np.zeros_like(tax_unit_id, dtype=float),
-
         investment_income=calc("net_investment_income"),
-
         # PE computed values (used as inputs for some Cosilico formulas)
         adjusted_gross_income=calc("adjusted_gross_income"),
         taxable_income=calc("taxable_income"),
-
         # Demographics
         eitc_child_count=calc("eitc_child_count"),
-        ctc_child_count=calc("ctc_qualifying_children") if _var_exists(sim, "ctc_qualifying_children", year) else calc("eitc_child_count"),
+        ctc_child_count=calc("ctc_qualifying_children")
+        if _var_exists(sim, "ctc_qualifying_children", year)
+        else calc("eitc_child_count"),
         head_age=head_age,
         spouse_age=spouse_age,
-
         # Standard deduction inputs (from 26 USC 63)
         head_is_blind=head_is_blind,
         spouse_is_blind=spouse_is_blind,
         head_is_dependent=head_is_dependent,
-
         # CDCC inputs (from 26 USC 21)
-        cdcc_qualifying_individuals=calc("capped_count_cdcc_eligible") if _var_exists(sim, "capped_count_cdcc_eligible", year) else np.zeros_like(tax_unit_id, dtype=float),
-        childcare_expenses=calc("tax_unit_childcare_expenses") if _var_exists(sim, "tax_unit_childcare_expenses", year) else np.zeros_like(tax_unit_id, dtype=float),
-
+        cdcc_qualifying_individuals=calc("capped_count_cdcc_eligible")
+        if _var_exists(sim, "capped_count_cdcc_eligible", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        childcare_expenses=calc("tax_unit_childcare_expenses")
+        if _var_exists(sim, "tax_unit_childcare_expenses", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
         # Above-the-line deductions (from 26 USC 62)
-        self_employment_tax_deduction=calc("self_employment_tax_ald") if _var_exists(sim, "self_employment_tax_ald", year) else np.zeros_like(tax_unit_id, dtype=float),
-        self_employed_health_insurance_deduction=calc("self_employed_health_insurance_ald") if _var_exists(sim, "self_employed_health_insurance_ald", year) else np.zeros_like(tax_unit_id, dtype=float),
-        educator_expense_deduction=aggregate_to_tax_unit(calc("educator_expense")) if _var_exists(sim, "educator_expense", year) else np.zeros_like(tax_unit_id, dtype=float),
-        loss_deduction=calc("loss_ald") if _var_exists(sim, "loss_ald", year) else np.zeros_like(tax_unit_id, dtype=float),
-        self_employed_pension_deduction=calc("self_employed_pension_contribution_ald") if _var_exists(sim, "self_employed_pension_contribution_ald", year) else np.zeros_like(tax_unit_id, dtype=float),
-        ira_deduction=aggregate_to_tax_unit(calc("traditional_ira_contributions")) if _var_exists(sim, "traditional_ira_contributions", year) else np.zeros_like(tax_unit_id, dtype=float),
-        hsa_deduction=calc("health_savings_account_ald") if _var_exists(sim, "health_savings_account_ald", year) else np.zeros_like(tax_unit_id, dtype=float),
+        self_employment_tax_deduction=calc("self_employment_tax_ald")
+        if _var_exists(sim, "self_employment_tax_ald", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        self_employed_health_insurance_deduction=calc("self_employed_health_insurance_ald")
+        if _var_exists(sim, "self_employed_health_insurance_ald", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        educator_expense_deduction=aggregate_to_tax_unit(calc("educator_expense"))
+        if _var_exists(sim, "educator_expense", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        loss_deduction=calc("loss_ald")
+        if _var_exists(sim, "loss_ald", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        self_employed_pension_deduction=calc("self_employed_pension_contribution_ald")
+        if _var_exists(sim, "self_employed_pension_contribution_ald", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        ira_deduction=aggregate_to_tax_unit(calc("traditional_ira_contributions"))
+        if _var_exists(sim, "traditional_ira_contributions", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        hsa_deduction=calc("health_savings_account_ald")
+        if _var_exists(sim, "health_savings_account_ald", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
         # student_loan_interest_ald is Person-level, needs aggregation
-        student_loan_interest_deduction=aggregate_to_tax_unit(calc("student_loan_interest_ald")) if _var_exists(sim, "student_loan_interest_ald", year) else np.zeros_like(tax_unit_id, dtype=float),
-        above_the_line_deductions_total=calc("above_the_line_deductions") if _var_exists(sim, "above_the_line_deductions", year) else np.zeros_like(tax_unit_id, dtype=float),
+        student_loan_interest_deduction=aggregate_to_tax_unit(calc("student_loan_interest_ald"))
+        if _var_exists(sim, "student_loan_interest_ald", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
+        above_the_line_deductions_total=calc("above_the_line_deductions")
+        if _var_exists(sim, "above_the_line_deductions", year)
+        else np.zeros_like(tax_unit_id, dtype=float),
     )
 
 
@@ -217,6 +259,7 @@ def _var_exists(sim, var_name: str, year: int) -> bool:
 @dataclass
 class ComparisonResult:
     """Result of comparing a single variable."""
+
     variable: str
     match_rate: float  # Within $1 tolerance
     mean_absolute_error: float
@@ -289,20 +332,24 @@ def run_aligned_comparison(year: int = 2024) -> dict:
 
     # Define Cosilico functions that use common dataset
     def cos_eitc(ds: CommonDataset) -> np.ndarray:
-        df = pd.DataFrame({
-            "earned_income": ds.earned_income,
-            "adjusted_gross_income": ds.adjusted_gross_income,
-            "num_eitc_children": np.clip(ds.eitc_child_count, 0, 3),
-            "is_joint": ds.is_joint,
-            "investment_income": ds.investment_income,
-        })
+        df = pd.DataFrame(
+            {
+                "earned_income": ds.earned_income,
+                "adjusted_gross_income": ds.adjusted_gross_income,
+                "num_eitc_children": np.clip(ds.eitc_child_count, 0, 3),
+                "is_joint": ds.is_joint,
+                "investment_income": ds.investment_income,
+            }
+        )
         return calculate_eitc(df, PARAMS_2024)
 
     def cos_income_tax(ds: CommonDataset) -> np.ndarray:
-        df = pd.DataFrame({
-            "taxable_income": ds.taxable_income,
-            "is_joint": ds.is_joint,
-        })
+        df = pd.DataFrame(
+            {
+                "taxable_income": ds.taxable_income,
+                "is_joint": ds.is_joint,
+            }
+        )
         return calculate_income_tax(df, PARAMS_2024)
 
     # Run comparisons
@@ -311,13 +358,13 @@ def run_aligned_comparison(year: int = 2024) -> dict:
     print("\nComparing EITC...")
     eitc_result = compare_variable(dataset, cos_eitc, pe_eitc, "eitc")
     results.append(eitc_result)
-    print(f"  Match rate: {eitc_result.match_rate*100:.1f}%")
+    print(f"  Match rate: {eitc_result.match_rate * 100:.1f}%")
     print(f"  MAE: ${eitc_result.mean_absolute_error:,.0f}")
 
     print("\nComparing Income Tax...")
     tax_result = compare_variable(dataset, cos_income_tax, pe_income_tax, "income_tax_before_credits")
     results.append(tax_result)
-    print(f"  Match rate: {tax_result.match_rate*100:.1f}%")
+    print(f"  Match rate: {tax_result.match_rate * 100:.1f}%")
     print(f"  MAE: ${tax_result.mean_absolute_error:,.0f}")
 
     # Format as dashboard JSON

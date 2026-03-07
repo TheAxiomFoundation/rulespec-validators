@@ -58,9 +58,11 @@ class TestCompareSingleCase:
             expected={"eitc": 500},
         )
 
-        with patch("cosilico_validators.comparison.multi_validator.PolicyEngineValidator") as mock_pe, \
-             patch("cosilico_validators.comparison.multi_validator.TaxsimValidator") as mock_ts, \
-             patch("cosilico_validators.comparison.multi_validator.TaxCalculatorValidator") as mock_tc:
+        with (
+            patch("cosilico_validators.comparison.multi_validator.PolicyEngineValidator") as mock_pe,
+            patch("cosilico_validators.comparison.multi_validator.TaxsimValidator") as mock_ts,
+            patch("cosilico_validators.comparison.multi_validator.TaxCalculatorValidator") as mock_tc,
+        ):
             # Mock PE
             mock_pe_inst = MagicMock()
             mock_pe.return_value = mock_pe_inst
@@ -85,8 +87,9 @@ class TestCompareSingleCase:
             mock_tc_result.calculated_value = 500.0
             mock_tc_inst.validate.return_value = mock_tc_result
 
-            with patch("cosilico_validators.comparison.multi_validator.get_taxsim_executable_path",
-                        return_value="/tmp/taxsim"):
+            with patch(
+                "cosilico_validators.comparison.multi_validator.get_taxsim_executable_path", return_value="/tmp/taxsim"
+            ):
                 result = compare_single_case(
                     test_case=test_case,
                     cosilico_value=500.0,
@@ -131,9 +134,11 @@ class TestCompareSingleCase:
             expected={"eitc": 500},
         )
 
-        with patch("cosilico_validators.comparison.multi_validator.PolicyEngineValidator") as mock_pe, \
-             patch("cosilico_validators.comparison.multi_validator.TaxsimValidator") as mock_ts, \
-             patch("cosilico_validators.comparison.multi_validator.TaxCalculatorValidator") as mock_tc:
+        with (
+            patch("cosilico_validators.comparison.multi_validator.PolicyEngineValidator") as mock_pe,
+            patch("cosilico_validators.comparison.multi_validator.TaxsimValidator") as mock_ts,
+            patch("cosilico_validators.comparison.multi_validator.TaxCalculatorValidator") as mock_tc,
+        ):
             for mock in [mock_pe, mock_ts, mock_tc]:
                 inst = MagicMock()
                 mock.return_value = inst
@@ -164,8 +169,10 @@ class TestCompareMicrodata:
             )
 
         # Mock all validators to succeed
-        with patch("cosilico_validators.comparison.multi_validator.TaxsimValidator") as mock_ts, \
-             patch("cosilico_validators.comparison.multi_validator.TaxCalculatorValidator") as mock_tc:
+        with (
+            patch("cosilico_validators.comparison.multi_validator.TaxsimValidator") as mock_ts,
+            patch("cosilico_validators.comparison.multi_validator.TaxCalculatorValidator") as mock_tc,
+        ):
             # Setup TAXSIM mock
             mock_ts_inst = MagicMock()
             mock_ts.return_value = mock_ts_inst
@@ -182,8 +189,9 @@ class TestCompareMicrodata:
             mock_tc_result.calculated_value = 505.0
             mock_tc_inst.batch_validate.return_value = [mock_tc_result] * 3
 
-            with patch("cosilico_validators.comparison.multi_validator.get_taxsim_executable_path",
-                        return_value="/tmp/taxsim"):
+            with patch(
+                "cosilico_validators.comparison.multi_validator.get_taxsim_executable_path", return_value="/tmp/taxsim"
+            ):
                 result = compare_microdata(
                     cosilico_values=cosilico_values,
                     input_builder=input_builder,
@@ -211,8 +219,9 @@ class TestCompareMicrodata:
             mock_ts_result.calculated_value = 505.0
             mock_ts_inst.batch_validate.return_value = [mock_ts_result] * 2
 
-            with patch("cosilico_validators.comparison.multi_validator.get_taxsim_executable_path",
-                        return_value="/tmp/taxsim"):
+            with patch(
+                "cosilico_validators.comparison.multi_validator.get_taxsim_executable_path", return_value="/tmp/taxsim"
+            ):
                 result = compare_microdata(
                     cosilico_values=cosilico_values,
                     input_builder=input_builder,
@@ -238,8 +247,9 @@ class TestCompareMicrodata:
             mock_ts_result.calculated_value = None
             mock_ts_inst.batch_validate.return_value = [mock_ts_result]
 
-            with patch("cosilico_validators.comparison.multi_validator.get_taxsim_executable_path",
-                        return_value="/tmp/taxsim"):
+            with patch(
+                "cosilico_validators.comparison.multi_validator.get_taxsim_executable_path", return_value="/tmp/taxsim"
+            ):
                 result = compare_microdata(
                     cosilico_values=cosilico_values,
                     input_builder=input_builder,
@@ -303,10 +313,14 @@ class TestCompareMicrodata:
         def input_builder(i):
             return TestCase(name=f"case_{i}", inputs={}, expected={})
 
-        with patch("cosilico_validators.comparison.multi_validator.TaxsimValidator",
-                    side_effect=Exception("init failed")), \
-             patch("cosilico_validators.comparison.multi_validator.get_taxsim_executable_path",
-                   return_value="/tmp/taxsim"):
+        with (
+            patch(
+                "cosilico_validators.comparison.multi_validator.TaxsimValidator", side_effect=Exception("init failed")
+            ),
+            patch(
+                "cosilico_validators.comparison.multi_validator.get_taxsim_executable_path", return_value="/tmp/taxsim"
+            ),
+        ):
             result = compare_microdata(
                 cosilico_values=cosilico_values,
                 input_builder=input_builder,
@@ -357,15 +371,17 @@ class TestRunComparisonDemo:
                 match_flags={"policyengine": True, "taxsim": False},
             )
             from cosilico_validators.comparison.multi_validator import run_comparison_demo
+
             run_comparison_demo(year=2023)
 
 
 class TestGetTaxsimExecutablePath:
     def test_path_creation(self, tmp_path):
-        with patch("cosilico_validators.comparison.multi_validator.Path.home",
-                    return_value=tmp_path), \
-             patch("cosilico_validators.comparison.multi_validator.urllib.request.urlretrieve"), \
-             patch("cosilico_validators.comparison.multi_validator.os.chmod"):
+        with (
+            patch("cosilico_validators.comparison.multi_validator.Path.home", return_value=tmp_path),
+            patch("cosilico_validators.comparison.multi_validator.urllib.request.urlretrieve"),
+            patch("cosilico_validators.comparison.multi_validator.os.chmod"),
+        ):
             path = get_taxsim_executable_path()
             assert isinstance(path, type(tmp_path / "test"))
 
@@ -373,28 +389,27 @@ class TestGetTaxsimExecutablePath:
         cache_dir = tmp_path / ".cache" / "cosilico-validators" / "taxsim"
         cache_dir.mkdir(parents=True)
         (cache_dir / "taxsimtest-osx.exe").write_text("fake")
-        with patch("cosilico_validators.comparison.multi_validator.Path.home",
-                    return_value=tmp_path):
+        with patch("cosilico_validators.comparison.multi_validator.Path.home", return_value=tmp_path):
             path = get_taxsim_executable_path()
             assert path.exists()
 
     def test_linux_platform(self, tmp_path):
-        with patch("cosilico_validators.comparison.multi_validator.Path.home",
-                    return_value=tmp_path), \
-             patch("cosilico_validators.comparison.multi_validator.platform.system",
-                    return_value="Linux"), \
-             patch("cosilico_validators.comparison.multi_validator.urllib.request.urlretrieve"), \
-             patch("cosilico_validators.comparison.multi_validator.os.chmod"):
+        with (
+            patch("cosilico_validators.comparison.multi_validator.Path.home", return_value=tmp_path),
+            patch("cosilico_validators.comparison.multi_validator.platform.system", return_value="Linux"),
+            patch("cosilico_validators.comparison.multi_validator.urllib.request.urlretrieve"),
+            patch("cosilico_validators.comparison.multi_validator.os.chmod"),
+        ):
             path = get_taxsim_executable_path()
             assert "linux" in str(path)
 
     def test_windows_platform(self, tmp_path):
-        with patch("cosilico_validators.comparison.multi_validator.Path.home",
-                    return_value=tmp_path), \
-             patch("cosilico_validators.comparison.multi_validator.platform.system",
-                    return_value="Windows"), \
-             patch("cosilico_validators.comparison.multi_validator.urllib.request.urlretrieve"), \
-             patch("cosilico_validators.comparison.multi_validator.os.chmod"):
+        with (
+            patch("cosilico_validators.comparison.multi_validator.Path.home", return_value=tmp_path),
+            patch("cosilico_validators.comparison.multi_validator.platform.system", return_value="Windows"),
+            patch("cosilico_validators.comparison.multi_validator.urllib.request.urlretrieve"),
+            patch("cosilico_validators.comparison.multi_validator.os.chmod"),
+        ):
             path = get_taxsim_executable_path()
             assert "windows" in str(path)
 

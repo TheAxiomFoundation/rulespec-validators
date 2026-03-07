@@ -54,8 +54,7 @@ class PolicyEngineValidator(BaseValidator):
                 self._simulation_class = Simulation
             except ImportError as e:
                 raise ImportError(
-                    "policyengine-us not installed. "
-                    "Install with: pip install cosilico-validators[policyengine]"
+                    "policyengine-us not installed. Install with: pip install cosilico-validators[policyengine]"
                 ) from e
         return self._simulation_class
 
@@ -72,9 +71,7 @@ class PolicyEngineValidator(BaseValidator):
             "people": {"adult": {"age": {year_str: 30}}},
             "tax_units": {"tax_unit": {"members": ["adult"]}},
             "spm_units": {"spm_unit": {"members": ["adult"]}},
-            "households": {
-                "household": {"members": ["adult"], "state_name": {year_str: "CA"}}
-            },
+            "households": {"household": {"members": ["adult"], "state_name": {year_str: "CA"}}},
             "families": {"family": {"members": ["adult"]}},
             "marital_units": {"marital_unit": {"members": ["adult"]}},
         }
@@ -82,24 +79,12 @@ class PolicyEngineValidator(BaseValidator):
         # Map common input names to PE variables
         input_handlers = {
             "age": lambda v: self._set_person_var(situation, "age", v, year_str),
-            "age_at_end_of_year": lambda v: self._set_person_var(
-                situation, "age", v, year_str
-            ),
-            "earned_income": lambda v: self._set_person_var(
-                situation, "employment_income", v, year_str
-            ),
-            "employment_income": lambda v: self._set_person_var(
-                situation, "employment_income", v, year_str
-            ),
-            "wages": lambda v: self._set_person_var(
-                situation, "employment_income", v, year_str
-            ),
-            "filing_status": lambda v: self._handle_filing_status(
-                situation, v, year_str
-            ),
-            "eitc_qualifying_children_count": lambda v: self._add_children(
-                situation, v, year_str
-            ),
+            "age_at_end_of_year": lambda v: self._set_person_var(situation, "age", v, year_str),
+            "earned_income": lambda v: self._set_person_var(situation, "employment_income", v, year_str),
+            "employment_income": lambda v: self._set_person_var(situation, "employment_income", v, year_str),
+            "wages": lambda v: self._set_person_var(situation, "employment_income", v, year_str),
+            "filing_status": lambda v: self._handle_filing_status(situation, v, year_str),
+            "eitc_qualifying_children_count": lambda v: self._add_children(situation, v, year_str),
             "num_children": lambda v: self._add_children(situation, v, year_str),
             "state": lambda v: self._set_state(situation, v, year_str),
             "state_name": lambda v: self._set_state(situation, v, year_str),
@@ -112,15 +97,11 @@ class PolicyEngineValidator(BaseValidator):
 
         return situation
 
-    def _set_person_var(
-        self, situation: dict, var: str, value: Any, year_str: str
-    ) -> None:
+    def _set_person_var(self, situation: dict, var: str, value: Any, year_str: str) -> None:
         """Set a person-level variable."""
         situation["people"]["adult"][var] = {year_str: value}
 
-    def _handle_filing_status(
-        self, situation: dict, status: str, year_str: str
-    ) -> None:
+    def _handle_filing_status(self, situation: dict, status: str, year_str: str) -> None:
         """Handle filing status - add spouse if joint."""
         if status.upper() in ["JOINT", "MARRIED_FILING_JOINTLY"]:
             situation["people"]["spouse"] = {"age": {year_str: 30}}
@@ -150,9 +131,7 @@ class PolicyEngineValidator(BaseValidator):
         """Set the household state."""
         situation["households"]["household"]["state_name"] = {year_str: state}
 
-    def validate(
-        self, test_case: TestCase, variable: str, year: int = 2024
-    ) -> ValidatorResult:
+    def validate(self, test_case: TestCase, variable: str, year: int = 2024) -> ValidatorResult:
         """Run validation using PolicyEngine."""
         Simulation = self._get_simulation_class()
 

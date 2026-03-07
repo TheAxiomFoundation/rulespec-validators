@@ -77,13 +77,56 @@ TAXSIM_OUTPUT_VARS = {
 
 # State FIPS codes
 STATE_CODES = {
-    "AL": 1, "AK": 2, "AZ": 4, "AR": 5, "CA": 6, "CO": 8, "CT": 9, "DE": 10,
-    "DC": 11, "FL": 12, "GA": 13, "HI": 15, "ID": 16, "IL": 17, "IN": 18,
-    "IA": 19, "KS": 20, "KY": 21, "LA": 22, "ME": 23, "MD": 24, "MA": 25,
-    "MI": 26, "MN": 27, "MS": 28, "MO": 29, "MT": 30, "NE": 31, "NV": 32,
-    "NH": 33, "NJ": 34, "NM": 35, "NY": 36, "NC": 37, "ND": 38, "OH": 39,
-    "OK": 40, "OR": 41, "PA": 42, "RI": 44, "SC": 45, "SD": 46, "TN": 47,
-    "TX": 48, "UT": 49, "VT": 50, "VA": 51, "WA": 53, "WV": 54, "WI": 55,
+    "AL": 1,
+    "AK": 2,
+    "AZ": 4,
+    "AR": 5,
+    "CA": 6,
+    "CO": 8,
+    "CT": 9,
+    "DE": 10,
+    "DC": 11,
+    "FL": 12,
+    "GA": 13,
+    "HI": 15,
+    "ID": 16,
+    "IL": 17,
+    "IN": 18,
+    "IA": 19,
+    "KS": 20,
+    "KY": 21,
+    "LA": 22,
+    "ME": 23,
+    "MD": 24,
+    "MA": 25,
+    "MI": 26,
+    "MN": 27,
+    "MS": 28,
+    "MO": 29,
+    "MT": 30,
+    "NE": 31,
+    "NV": 32,
+    "NH": 33,
+    "NJ": 34,
+    "NM": 35,
+    "NY": 36,
+    "NC": 37,
+    "ND": 38,
+    "OH": 39,
+    "OK": 40,
+    "OR": 41,
+    "PA": 42,
+    "RI": 44,
+    "SC": 45,
+    "SD": 46,
+    "TN": 47,
+    "TX": 48,
+    "UT": 49,
+    "VT": 50,
+    "VA": 51,
+    "WA": 53,
+    "WV": 54,
+    "WI": 55,
     "WY": 56,
 }
 
@@ -108,12 +151,42 @@ TAXSIM_API_URL = "https://taxsim.nber.org/taxsim35/redirect.cgi"
 
 # TAXSIM input columns in order
 TAXSIM_COLUMNS = [
-    "taxsimid", "year", "state", "mstat", "page", "sage", "depx",
-    "age1", "age2", "age3",
-    "pwages", "swages", "psemp", "ssemp", "dividends", "intrec", "stcg", "ltcg",
-    "otherprop", "nonprop", "pensions", "gssi", "pui", "sui", "transfers",
-    "rentpaid", "proptax", "otheritem", "childcare", "mortgage",
-    "scorp", "pbusinc", "pprofinc", "sbusinc", "sprofinc", "idtl"
+    "taxsimid",
+    "year",
+    "state",
+    "mstat",
+    "page",
+    "sage",
+    "depx",
+    "age1",
+    "age2",
+    "age3",
+    "pwages",
+    "swages",
+    "psemp",
+    "ssemp",
+    "dividends",
+    "intrec",
+    "stcg",
+    "ltcg",
+    "otherprop",
+    "nonprop",
+    "pensions",
+    "gssi",
+    "pui",
+    "sui",
+    "transfers",
+    "rentpaid",
+    "proptax",
+    "otheritem",
+    "childcare",
+    "mortgage",
+    "scorp",
+    "pbusinc",
+    "pprofinc",
+    "sbusinc",
+    "sprofinc",
+    "idtl",
 ]
 
 
@@ -263,15 +336,13 @@ class TaxsimValidator(BaseValidator):
         # Add child ages if dependents exist
         num_deps = taxsim_input.get("depx", 0)
         for i in range(min(num_deps, 3)):
-            taxsim_input[f"age{i+1}"] = 10  # Default child age
+            taxsim_input[f"age{i + 1}"] = 10  # Default child age
 
         return taxsim_input
 
     def _create_input_csv(self, taxsim_input: dict) -> str:
         """Create TAXSIM input CSV file."""
-        temp_file = tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False
-        )
+        temp_file = tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False)
 
         # Write header
         temp_file.write(",".join(TAXSIM_COLUMNS) + "\n")
@@ -306,9 +377,7 @@ class TaxsimValidator(BaseValidator):
         for attempt in range(self.max_retries):
             try:
                 # Write CSV to temp file for curl
-                with tempfile.NamedTemporaryFile(
-                    mode="w", suffix=".csv", delete=False
-                ) as f:
+                with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
                     f.write(csv_data)
                     temp_path = f.name
 
@@ -346,13 +415,13 @@ class TaxsimValidator(BaseValidator):
 
             except subprocess.TimeoutExpired as e:
                 if attempt < self.max_retries - 1:
-                    time.sleep(2 ** attempt)  # Exponential backoff
+                    time.sleep(2**attempt)  # Exponential backoff
                     continue
                 raise RuntimeError(f"TAXSIM API timeout after {self.timeout}s") from e
 
             except Exception as e:
                 if attempt < self.max_retries - 1:
-                    time.sleep(2 ** attempt)
+                    time.sleep(2**attempt)
                     continue
                 raise RuntimeError(f"TAXSIM API failed: {e}") from e
 
@@ -436,9 +505,7 @@ class TaxsimValidator(BaseValidator):
 
         return None
 
-    def validate(
-        self, test_case: TestCase, variable: str, year: int = 2023
-    ) -> ValidatorResult:
+    def validate(self, test_case: TestCase, variable: str, year: int = 2023) -> ValidatorResult:
         """Run validation using TAXSIM (web API or local executable).
 
         Args:
@@ -517,9 +584,7 @@ class TaxsimValidator(BaseValidator):
             if input_file and os.path.exists(input_file):
                 os.unlink(input_file)
 
-    def batch_validate(
-        self, test_cases: list[TestCase], variable: str, year: int = 2023
-    ) -> list[ValidatorResult]:
+    def batch_validate(self, test_cases: list[TestCase], variable: str, year: int = 2023) -> list[ValidatorResult]:
         """Validate multiple test cases efficiently.
 
         For web API mode, batches requests to minimize API calls.

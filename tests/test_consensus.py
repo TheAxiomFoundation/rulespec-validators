@@ -31,9 +31,7 @@ class MockValidator(BaseValidator):
     def supports_variable(self, variable: str) -> bool:
         return variable.lower() in self.supported_variables
 
-    def validate(
-        self, test_case: TestCase, variable: str, year: int = 2024
-    ) -> ValidatorResult:
+    def validate(self, test_case: TestCase, variable: str, year: int = 2024) -> ValidatorResult:
         return ValidatorResult(
             validator_name=self.name,
             validator_type=self.validator_type,
@@ -213,17 +211,21 @@ class TestValidationResult:
 class TestConsensusRewardConfidenceEdgeCases:
     def test_compute_reward_empty_results(self):
         """Test _compute_reward with empty results dict returns 0.0."""
-        engine = ConsensusEngine(validators=[
-            MockValidator("V1", ValidatorType.REFERENCE, 500),
-        ])
+        engine = ConsensusEngine(
+            validators=[
+                MockValidator("V1", ValidatorType.REFERENCE, 500),
+            ]
+        )
         reward = engine._compute_reward({}, expected=500.0, consensus_level=ConsensusLevel.DISAGREEMENT)
         assert reward == 0.0
 
     def test_compute_confidence_no_successful_results(self):
         """Test _compute_confidence with consensus_value but no successful validators."""
-        engine = ConsensusEngine(validators=[
-            MockValidator("V1", ValidatorType.REFERENCE, 500),
-        ])
+        engine = ConsensusEngine(
+            validators=[
+                MockValidator("V1", ValidatorType.REFERENCE, 500),
+            ]
+        )
         failed_result = ValidatorResult(
             validator_name="test",
             validator_type=ValidatorType.REFERENCE,
