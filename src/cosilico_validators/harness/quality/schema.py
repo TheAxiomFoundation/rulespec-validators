@@ -7,6 +7,8 @@ Checks:
 - No hardcoded literals (only -1, 0, 1 allowed)
 """
 
+# NOTE: This may move to rac-compile. See docs/scope.md.
+
 import re
 from pathlib import Path
 

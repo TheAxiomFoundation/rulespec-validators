@@ -99,14 +99,104 @@ class ConsensusEngine:
     ) -> ValidationResult:
         """Run validation across all validators and compute consensus.
 
+        This is the main entry point for oracle-consensus validation. It
+        runs every registered validator that supports ``variable`` against
+        ``test_case`` and aggregates their outputs into a single
+        ``ValidationResult``.
+
+        Input shape
+        -----------
+        ``test_case`` is a :class:`TestCase` carrying household inputs, a
+        citation, and an ``expected`` dict mapping variable names to
+        expected numeric values. The engine passes the whole list of
+        ``ValidatorResult`` objects produced by each oracle into
+        :meth:`_compute_consensus`, :meth:`_compute_reward`,
+        :meth:`_compute_confidence`, and :meth:`_detect_potential_bugs`.
+
+        Reward signal (-1.0 to +1.0)
+        ----------------------------
+        The ``reward_signal`` on the returned ``ValidationResult`` is
+        designed as a training signal for AI encoders. It is a sum of two
+        components, clipped to ``[-1.0, +1.0]``:
+
+        1. A base reward derived from the ``ConsensusLevel``:
+
+           - ``FULL_AGREEMENT`` = +0.5
+           - ``PRIMARY_CONFIRMED`` = +0.4
+           - ``MAJORITY_AGREEMENT`` = +0.2
+           - ``POTENTIAL_UPSTREAM_BUG`` = +0.1  (slight positive —
+             Claude is confident and the disagreement is worth investigating)
+           - ``DISAGREEMENT`` = -0.2
+
+        2. A match bonus of up to +0.5 equal to the weighted fraction of
+           validators whose calculated value is within tolerance of the
+           expected value. Primary validators (PolicyEngine today) count
+           ``primary_weight`` times; other validators count once.
+
+        Intuition: a +1.0 reward means every validator — including the
+        primary — agrees with the expected value. A -1.0 means everyone
+        disagrees with the expected value and with each other.
+
+        Claude confidence
+        -----------------
+        ``claude_confidence`` is an optional 0-1 score from the upstream
+        Claude encoder expressing its confidence that the encoding is
+        correct. It does **not** shift the reward signal directly. Its
+        only effect is to enable the ``POTENTIAL_UPSTREAM_BUG`` path:
+        when ``claude_confidence > 0.9`` and the oracles disagree among
+        themselves, the engine treats the expected value as the
+        consensus and flags each disagreeing oracle as a potential
+        upstream bug in :attr:`ValidationResult.potential_bugs`.
+
+        "Upstream bug detected" means
+        -----------------------------
+        A potential upstream bug is recorded when **all** of the
+        following hold:
+
+        - ``claude_confidence`` was supplied and is ``> 0.9``.
+        - A validator ran successfully and produced a value.
+        - That value differs from ``expected_value`` by more than
+          ``self.tolerance`` dollars.
+
+        Each entry in ``potential_bugs`` identifies the validator, its
+        type, the expected and actual values, the dollar difference, the
+        citation from the test case, and Claude's confidence — enough
+        information to file a bug against the oracle system.
+
+        Worked example
+        --------------
+        Suppose ``test_case.expected = {"federal_income_tax": 2500.0}``
+        for a simple single-filer scenario with ``claude_confidence = 0.95``,
+        and three validators return:
+
+        - PolicyEngine (PRIMARY): 2498.00
+        - TAXSIM (REFERENCE): 2499.50
+        - PSL (REFERENCE): 2501.25
+
+        All three are within the default $15 tolerance, so
+        ``consensus_level = FULL_AGREEMENT``, ``consensus_value ≈ 2499.58``,
+        and ``reward_signal = 0.5 + 0.5 = 1.0`` (base 0.5 for full
+        agreement plus the full +0.5 match bonus because every validator
+        matches expected). ``potential_bugs`` is empty.
+
+        If PSL instead returned ``2750.00`` while the others stayed near
+        ``2500``, the level becomes ``PRIMARY_CONFIRMED`` (primary +
+        majority agree with expected), the match bonus drops (PSL no
+        longer counts toward matches), and ``potential_bugs`` contains
+        one entry flagging PSL as an outlier — a candidate upstream bug.
+
         Args:
-            test_case: Test case with inputs and expected output
-            variable: Variable to validate
-            year: Tax year
-            claude_confidence: Optional confidence score from Claude encoder (0-1)
+            test_case: Test case with inputs, expected outputs, and citation.
+            variable: Variable to validate (must appear in ``test_case.expected``
+                by substring match, case-insensitive).
+            year: Tax year to evaluate against.
+            claude_confidence: Optional 0-1 score from the Claude encoder.
+                Only values ``> 0.9`` activate upstream-bug detection.
 
         Returns:
-            ValidationResult with consensus and reward signal
+            ValidationResult with consensus level, consensus value,
+            per-validator results, reward signal, confidence, and any
+            detected potential upstream bugs.
         """
         # Get expected value
         expected_value = None

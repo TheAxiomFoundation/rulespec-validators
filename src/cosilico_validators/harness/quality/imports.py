@@ -4,6 +4,8 @@ Checks that all imports reference existing files and variables.
 Format: path#variable or path#variable as alias
 """
 
+# NOTE: This may move to rac-compile. See docs/scope.md.
+
 import re
 from pathlib import Path
 

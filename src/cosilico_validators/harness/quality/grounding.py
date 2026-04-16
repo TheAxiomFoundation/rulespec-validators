@@ -5,6 +5,8 @@ present in the source rule text. Encodings must be grounded in the
 source — no invented, hallucinated, or cross-referenced values.
 """
 
+# NOTE: This may move to rac-compile. See docs/scope.md.
+
 import contextlib
 import re
 from pathlib import Path
@@ -151,9 +153,7 @@ def extract_numbers_from_text(text: str) -> set[float]:
             numbers.add(float(raw))
 
     # "X percent" / "X per centum" -> also add X/100 as decimal
-    percent_pattern = re.compile(
-        r"(\d+(?:\.\d+)?)\s+(?:percent|per\s*centum)", re.IGNORECASE
-    )
+    percent_pattern = re.compile(r"(\d+(?:\.\d+)?)\s+(?:percent|per\s*centum)", re.IGNORECASE)
     for m in percent_pattern.finditer(text):
         with contextlib.suppress(ValueError):
             numbers.add(float(m.group(1)) / 100)

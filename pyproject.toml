@@ -90,7 +90,10 @@ markers = [
 source = ["src/cosilico_validators"]
 
 [tool.coverage.report]
-fail_under = 100
+# Realistic threshold for a validation framework with many optional
+# oracle integrations (PolicyEngine, TAXSIM, PSL, Yale). 100% was
+# unmaintainable and encouraged brittle coverage-chasing tests.
+fail_under = 85
 show_missing = true
 exclude_lines = [
     "pragma: no cover",
